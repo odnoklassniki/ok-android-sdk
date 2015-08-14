@@ -368,6 +368,34 @@ public class Odnoklassniki {
         mContext.startActivity(intent);
     }
 
+    /**
+     * Calls application invite widget
+     *
+     * @param listener callback notification listener
+     */
+    public void performAppInvite(OkListener listener) {
+        performAppSuggestInvite(listener, OkAppInviteActivity.class);
+    }
+
+    /**
+     * Calls application suggest widget
+     *
+     * @param listener callback notification listener
+     */
+    public void performAppSuggest(OkListener listener) {
+        performAppSuggestInvite(listener, OkAppSuggestActivity.class);
+    }
+
+    private void performAppSuggestInvite(OkListener listener, Class<? extends AbstractWidgetActivity> clazz) {
+        this.mOkListener = listener;
+        Intent intent = new Intent(mContext, clazz);
+        intent.putExtra(Shared.PARAM_APP_ID, mAppId);
+        intent.putExtra(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
+        intent.putExtra(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        mContext.startActivity(intent);
+    }
+
     private void signParameters(final Map<String, String> params) {
         final StringBuilder sb = new StringBuilder();
         for (final Entry<String, String> entry : params.entrySet()) {

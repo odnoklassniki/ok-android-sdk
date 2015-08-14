@@ -73,20 +73,35 @@ public class MainActivity extends Activity {
                 hideForm();
             }
         });
+
+        final OkListener toasterListener = new OkListener() {
+            @Override
+            public void onSuccess(final JSONObject json) {
+                Toast.makeText(MainActivity.this, json.toString(), Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(MainActivity.this, String.format("%s: %s", getString(R.string.error), error), Toast.LENGTH_LONG).show();
+            }
+        };
+
         findViewById(R.id.sdk_post).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                mOdnoklassniki.performPosting("{\"media\":[{\"type\":\"text\",\"text\":\"hello world!\"}]}", false, new OkListener() {
-                    @Override
-                    public void onSuccess(final JSONObject json) {
-                        Toast.makeText(MainActivity.this, json.toString(), Toast.LENGTH_LONG).show();
-                    }
-
-                    @Override
-                    public void onError(String error) {
-                        Toast.makeText(MainActivity.this, String.format("%s: %s", getString(R.string.error), error), Toast.LENGTH_LONG).show();
-                    }
-                });
+                mOdnoklassniki.performPosting("{\"media\":[{\"type\":\"text\",\"text\":\"hello world!\"}]}", false, toasterListener);
+            }
+        });
+        findViewById(R.id.sdk_app_invite).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOdnoklassniki.performAppInvite(toasterListener);
+            }
+        });
+        findViewById(R.id.sdk_app_suggest).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOdnoklassniki.performAppSuggest(toasterListener);
             }
         });
 

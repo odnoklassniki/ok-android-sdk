@@ -41,6 +41,8 @@
             </intent-filter>
         </activity>
         <activity android:name="ru.ok.android.sdk.OkPostingActivity"/>
+        <activity android:name="ru.ok.android.sdk.OkAppInviteActivity"/>
+        <activity android:name="ru.ok.android.sdk.OkAppSuggestActivity"/>
     </application>
 
 </manifest>

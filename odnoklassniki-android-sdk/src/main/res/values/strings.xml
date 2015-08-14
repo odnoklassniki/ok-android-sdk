@@ -9,6 +9,8 @@
     <string name="cancel">Cancel</string>
     <string name="authorization_canceled">Authorization was canceled</string>
     <string name="posting_canceled">Posting was canceled</string>
+    <string name="invite_canceled">Invite friends was canceled</string>
+    <string name="suggest_canceled">Suggest to friends was canceled</string>
 
     <string name="error_connect">Failed to connect to the server</string>
     <string name="error_failed_ssl_handshake">Failed to perform SSL handshake</string>

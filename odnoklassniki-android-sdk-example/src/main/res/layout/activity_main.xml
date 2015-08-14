@@ -37,6 +37,20 @@
             android:text="@string/post_widget"/>
 
         <Button
+            android:id="@+id/sdk_app_invite"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/sdk_post"
+            android:text="@string/app_invite_widget"/>
+
+        <Button
+            android:id="@+id/sdk_app_suggest"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/sdk_app_invite"
+            android:text="@string/app_suggest_widget"/>
+
+        <Button
             android:id="@+id/sdk_logout"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"

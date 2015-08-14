@@ -8,5 +8,7 @@
     <string name="call_users_get_current_user">Вызвать users.getCurrentUser</string>
     <string name="call_user_get_friends">Вызвать users.getFriends</string>
     <string name="post_widget">Сделать пост через виджет</string>
+    <string name="app_invite_widget">Пригласить друзей в игру через виджет</string>
+    <string name="app_suggest_widget">Рекомендовать игру друзьям через виджет</string>
     <string name="clear_tokens">Очистить токены</string>
 </resources>

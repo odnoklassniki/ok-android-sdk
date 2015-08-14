@@ -8,5 +8,7 @@
     <string name="call_users_get_current_user">Call users.getCurrentUser</string>
     <string name="call_user_get_friends">Call users.getFriends</string>
     <string name="post_widget">Post with posting widget</string>
+    <string name="app_invite_widget">Invite friends to app widget</string>
+    <string name="app_suggest_widget">Suggest app to friends widget</string>
     <string name="clear_tokens">Clear tokens</string>
 </resources>
