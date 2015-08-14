@@ -1,0 +1,7 @@
+<manifest
+    package="ru.ok.android.sdk"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-sdk android:minSdkVersion="4"/>
+    <application/>
+</manifest>

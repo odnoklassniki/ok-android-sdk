@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="no_application_data">Отсутствует id или публичный ключ приложения</string>
+    <string name="no_valid_token">Нет действующего токена</string>
+    <string name="api_method_cant_be_empty">Метод api не может быть пустым или null</string>
+    <string name="friend_uids_cant_be_empty">friend uids не может быть пустым или null</string>
+
+    <string name="retry">Повторить</string>
+    <string name="cancel">Отмена</string>
+    <string name="authorization_canceled">Авторизация была отменена</string>
+    <string name="posting_canceled">Постинг был отменен</string>
+
+    <string name="error_connect">Не удалось подключиться к серверу</string>
+    <string name="error_failed_ssl_handshake">Не удалось установить SSL соединение</string>
+    <string name="error_host_lookup">Сервер недоступен</string>
+    <string name="error_timeout">Время ожидания сервера истекло</string>
+    <string name="error_unknown">Неизвестная ошибка</string>
+
+    <string name="error_ssl_date_invalid">Не удалось установить SSL соединение. Возможно, установлена неправильная дата</string>
+    <string name="error_ssl_expired">Не удалось установить SSL соединение. Сертификат истек</string>
+    <string name="error_ssl_id_mismatch">Не удалось установить SSL соединение. Имя хоста не совпадает</string>
+    <string name="error_ssl_not_yet_valid">Не удалось установить SSL соединение. Возможно, установлена неправильная дата</string>
+    <string name="error_ssl_untrusted">Не удалось установить SSL соединение. CA не является доверенным</string>
+</resources>

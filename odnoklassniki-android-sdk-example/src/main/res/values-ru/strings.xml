@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OK SDK Example</string>
+
+    <string name="error">Ошибка</string>
+
+    <string name="login">Войти</string>
+    <string name="call_users_get_current_user">Вызвать users.getCurrentUser</string>
+    <string name="call_user_get_friends">Вызвать users.getFriends</string>
+    <string name="post_widget">Сделать пост через виджет</string>
+    <string name="clear_tokens">Очистить токены</string>
+</resources>

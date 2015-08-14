@@ -1,0 +1,47 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context=".MainActivity">
+
+    <Button
+        android:id="@+id/sdk_login"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/login"/>
+
+    <RelativeLayout
+        android:id="@+id/sdk_form"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/sdk_get_currentuser"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/call_users_get_current_user"/>
+
+        <Button
+            android:id="@+id/sdk_get_friends"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/sdk_get_currentuser"
+            android:text="@string/call_user_get_friends"/>
+
+        <Button
+            android:id="@+id/sdk_post"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/sdk_get_friends"
+            android:text="@string/post_widget"/>
+
+        <Button
+            android:id="@+id/sdk_logout"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:text="@string/clear_tokens"/>
+    </RelativeLayout>
+
+</RelativeLayout>

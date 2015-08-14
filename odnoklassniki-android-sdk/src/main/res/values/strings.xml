@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="no_application_data">No application data (id or public key)</string>
+    <string name="no_valid_token">No valid token</string>
+    <string name="api_method_cant_be_empty">Api method can\'t be empty or null</string>
+    <string name="friend_uids_cant_be_empty">You must provide at least one valid friend UID</string>
+
+    <string name="retry">Retry</string>
+    <string name="cancel">Cancel</string>
+    <string name="authorization_canceled">Authorization was canceled</string>
+    <string name="posting_canceled">Posting was canceled</string>
+
+    <string name="error_connect">Failed to connect to the server</string>
+    <string name="error_failed_ssl_handshake">Failed to perform SSL handshake</string>
+    <string name="error_host_lookup">Server or proxy hostname lookup failed</string>
+    <string name="error_timeout">Connection timed out</string>
+    <string name="error_unknown">Generic error</string>
+
+    <string name="error_ssl_date_invalid">The date of the certificate is invalid</string>
+    <string name="error_ssl_expired">The certificate has expired</string>
+    <string name="error_ssl_id_mismatch">Hostname mismatch</string>
+    <string name="error_ssl_not_yet_valid">The certificate is not yet valid</string>
+    <string name="error_ssl_untrusted">The certificate authority is not trusted</string>
+</resources>

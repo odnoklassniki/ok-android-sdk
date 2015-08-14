@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OK SDK Example</string>
+
+    <string name="error">Error</string>
+
+    <string name="login">Login</string>
+    <string name="call_users_get_current_user">Call users.getCurrentUser</string>
+    <string name="call_user_get_friends">Call users.getFriends</string>
+    <string name="post_widget">Post with posting widget</string>
+    <string name="clear_tokens">Clear tokens</string>
+</resources>
