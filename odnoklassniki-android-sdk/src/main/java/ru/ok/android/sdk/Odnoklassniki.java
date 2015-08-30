@@ -1,7 +1,9 @@
 package ru.ok.android.sdk;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.webkit.CookieManager;
@@ -25,6 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import android.webkit.CookieSyncManager;
 import ru.ok.android.sdk.util.OkEncryptUtil;
 import ru.ok.android.sdk.util.OkNetUtil;
 import ru.ok.android.sdk.util.OkScope;
@@ -423,6 +426,22 @@ public class Odnoklassniki {
         mAccessToken = null;
         mSessionSecretKey = null;
         TokenStore.removeStoredTokens(mContext);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            clearCookies();
+        } else {
+            clearCookiesOld();
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void clearCookies() {
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.removeAllCookies(null);
+    }
+
+    private void clearCookiesOld() {
+        CookieSyncManager.createInstance(mContext);
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.removeAllCookie();
     }
