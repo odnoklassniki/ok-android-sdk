@@ -25,7 +25,7 @@ public class OkPostingActivity extends AbstractWidgetActivity {
         setContentView(R.layout.ok_posting_activity);
         prepareWebView();
 
-        Bundle bundle = savedInstanceState != null ? savedInstanceState : getIntent().getExtras();
+        Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             mAttachment = bundle.getString(Shared.PARAM_ATTACHMENT);
             mUserTextEnable = bundle.getBoolean(Shared.PARAM_USER_TEXT_ENABLE, false);
@@ -38,13 +38,6 @@ public class OkPostingActivity extends AbstractWidgetActivity {
         WebView webView = (WebView) findViewById(R.id.web_view);
         webView.setWebViewClient(new OkWidgetViewClient(this));
         webView.getSettings().setJavaScriptEnabled(true);
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putString(Shared.PARAM_ATTACHMENT, mAttachment);
-        outState.putBoolean(Shared.PARAM_USER_TEXT_ENABLE, mUserTextEnable);
-        super.onSaveInstanceState(outState);
     }
 
     @Override

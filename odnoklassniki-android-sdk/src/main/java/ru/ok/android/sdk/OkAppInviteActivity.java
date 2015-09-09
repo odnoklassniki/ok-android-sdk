@@ -52,11 +52,11 @@ public class OkAppInviteActivity extends AbstractWidgetActivity {
         if (odnoklassniki != null) {
             try {
                 JSONObject json = new JSONObject(result);
-                String type = json.getString(Shared.PARAM_TYPE);
-                if ("error".equals(type)) {
-                    odnoklassniki.notifyFailed(json.getString(Shared.PARAM_MESSAGE));
-                } else {
+                String code = json.optString(Shared.PARAM_CODE);
+                if ("ok".equalsIgnoreCase(code)) {
                     odnoklassniki.notifySuccess(json);
+                } else {
+                    odnoklassniki.notifyFailed(json.getString(Shared.PARAM_MESSAGE));
                 }
             } catch (JSONException e) {
                 odnoklassniki.notifyFailed(result);

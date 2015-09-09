@@ -19,20 +19,12 @@ public abstract class AbstractWidgetActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Bundle bundle = savedInstanceState != null ? savedInstanceState : getIntent().getExtras();
+        Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             mAppId = bundle.getString(Shared.PARAM_APP_ID);
             mAccessToken = bundle.getString(Shared.PARAM_ACCESS_TOKEN);
             mSessionSecretKey = bundle.getString(Shared.PARAM_SESSION_SECRET_KEY);
         }
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putString(Shared.PARAM_APP_ID, mAppId);
-        outState.putString(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
-        outState.putString(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey);
-        super.onSaveInstanceState(outState);
     }
 
     protected abstract String getWidgetId();
@@ -42,7 +34,7 @@ public abstract class AbstractWidgetActivity extends Activity {
     protected abstract void processError(String error);
 
     protected final String getBaseUrl() {
-        return "https://connect.ok.ru/dk?st.cmd=" + getWidgetId() +
+        return Shared.REMOTE_WIDGETS + "dk?st.cmd=" + getWidgetId() +
                 "&st.access_token=" + mAccessToken +
                 "&st.app=" + mAppId +
                 "&st.return=" + getReturnUrl();
@@ -71,9 +63,9 @@ public abstract class AbstractWidgetActivity extends Activity {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if (url.startsWith(getReturnUrl())) {
-                Bundle parameters = OkNetUtil.getUrlParameters(url);
-                String result = parameters.getString("result");
-                processResult(result);
+                    Bundle parameters = OkNetUtil.getUrlParameters(url);
+                    String result = parameters.getString("result");
+                    processResult(result);
                 return true;
             }
             return super.shouldOverrideUrlLoading(view, url);

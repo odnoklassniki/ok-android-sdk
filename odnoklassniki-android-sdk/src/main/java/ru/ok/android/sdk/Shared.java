@@ -1,7 +1,11 @@
 package ru.ok.android.sdk;
 
 final class Shared {
-    static final String OAUTH_GET_TOKEN_URL = "https://ok.ru/oauth/authorize?client_id=%s&response_type=token&redirect_uri=%s&layout=m";
+    static final String REMOTE_PORTAL = "https://ok.ru/";
+    static final String REMOTE_API = "http://api.ok.ru/";
+    static final String REMOTE_WIDGETS = "https://connect.ok.ru/";
+
+    static final String OAUTH_GET_TOKEN_URL = REMOTE_PORTAL + "oauth/authorize?client_id=%s&response_type=token&redirect_uri=%s&layout=m";
 
     // Messages
     static final int MESSAGE_AUTH_RESULT = 1337;
@@ -25,10 +29,11 @@ final class Shared {
     static final String PARAM_SESSION_SECRET_KEY = "session_secret_key";
     static final String PARAM_SIGN = "sig";
     static final String PARAM_TYPE = "type";
+    static final String PARAM_CODE = "code";
     static final String PARAM_USER_TEXT_ENABLE = "utext";
 
     // Api
-    static final String API_URL = "http://api.ok.ru/fb.do";
+    static final String API_URL = REMOTE_API + "fb.do";
 
     static final String PREFERENCES_FILE = "oksdkprefs";
 }
