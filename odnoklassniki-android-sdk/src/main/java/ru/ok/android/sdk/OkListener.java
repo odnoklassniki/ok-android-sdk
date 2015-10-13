@@ -9,10 +9,10 @@ public interface OkListener {
     /**
      * Request was successful
      */
-    public void onSuccess(final JSONObject json);
+    void onSuccess(final JSONObject json);
 
     /**
      * Request was unsuccessful due any reason.
      */
-    public void onError(String error);
+    void onError(String error);
 }

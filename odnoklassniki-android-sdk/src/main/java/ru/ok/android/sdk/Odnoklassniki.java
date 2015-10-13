@@ -21,11 +21,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 
 import android.webkit.CookieSyncManager;
 import ru.ok.android.sdk.util.OkEncryptUtil;
@@ -35,7 +32,7 @@ import ru.ok.android.sdk.util.OkThreadUtil;
 
 public class Odnoklassniki {
     private static Odnoklassniki sOdnoklassniki;
-
+    private final List<DeferredData> deferredDataList = new LinkedList<>();
 
     /**
      * @deprecated use {@link #createInstance(android.content.Context, String, String)} instead.
@@ -45,6 +42,7 @@ public class Odnoklassniki {
         return createInstance(context, appId, appKey);
     }
 
+
     /**
      * This method is required to be called before {@link Odnoklassniki#getInstance()}<br>
      * Note that instance is only created once. Multiple calls to this method wont' create multiple instances of the object
@@ -53,8 +51,13 @@ public class Odnoklassniki {
         if ((appId == null) || (appKey == null)) {
             throw new IllegalArgumentException(context.getString(R.string.no_application_data));
         }
+
         if (sOdnoklassniki == null) {
-            sOdnoklassniki = new Odnoklassniki(context.getApplicationContext(), appId, appKey);
+            synchronized (Odnoklassniki.class) {
+                if (sOdnoklassniki == null) {
+                    sOdnoklassniki = new Odnoklassniki(context.getApplicationContext(), appId, appKey);
+                }
+            }
         }
         return sOdnoklassniki;
     }
@@ -184,6 +187,10 @@ public class Odnoklassniki {
                     listener.onError(error);
                 }
             });
+        } else {
+            synchronized (deferredDataList) {
+                deferredDataList.add(new DeferredData(error));
+            }
         }
     }
 
@@ -198,6 +205,19 @@ public class Odnoklassniki {
                     listener.onSuccess(json);
                 }
             });
+        } else {
+            synchronized (deferredDataList) {
+                deferredDataList.add(new DeferredData(json));
+            }
+        }
+    }
+
+    /**
+     * Removes deferred data if client do not need to receive something that was already requested but not received
+     */
+    public void clearDefferedData() {
+        synchronized (deferredDataList) {
+            deferredDataList.clear();
         }
     }
 
@@ -411,6 +431,19 @@ public class Odnoklassniki {
 
     public final void setOkListener(OkListener listener) {
         this.mOkListener = listener;
+        if (deferredDataList.size() > 0) {
+            synchronized (deferredDataList) {
+                for (DeferredData deferredData : deferredDataList) {
+                    if (deferredData.isDeferredDataError()) {
+                        listener.onError(deferredData.getDeferredErrorCode());
+                    } else {
+                        listener.onSuccess(deferredData.getDeferredResponse());
+                    }
+                }
+
+                deferredDataList.clear();
+            }
+        }
     }
 
     public final void removeOkListener() {
@@ -444,5 +477,49 @@ public class Odnoklassniki {
         CookieSyncManager.createInstance(mContext);
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.removeAllCookie();
+    }
+
+
+    /**
+     * Inner class to store
+     */
+    private class DeferredData {
+        private boolean isDeferredDataError;
+
+        private String deferredErrorCode;
+        private JSONObject deferredResponse;
+
+
+        /**
+         * Set deferredData as error code
+         *
+         * @param deferredErrorCode
+         */
+        public DeferredData(String deferredErrorCode) {
+            isDeferredDataError = true;
+            this.deferredErrorCode = deferredErrorCode;
+            this.deferredResponse = null;
+        }
+
+        /**
+         * @param deferredResponse
+         */
+        public DeferredData(JSONObject deferredResponse) {
+            isDeferredDataError = false;
+            this.deferredErrorCode = null;
+            this.deferredResponse = deferredResponse;
+        }
+
+        public boolean isDeferredDataError() {
+            return isDeferredDataError;
+        }
+
+        public String getDeferredErrorCode() {
+            return deferredErrorCode;
+        }
+
+        public JSONObject getDeferredResponse() {
+            return deferredResponse;
+        }
     }
 }
