@@ -177,39 +177,47 @@ public class Odnoklassniki {
     }
 
     protected final void notifyFailed(final String error) {
-        notifyFailed(mOkListener, error);
-    }
-
-    protected final void notifyFailed(final OkListener listener, final String error) {
-        if (listener != null) {
-            OkThreadUtil.executeOnMain(new Runnable() {
-                public void run() {
-                    listener.onError(error);
-                }
-            });
+        if (mOkListener != null) {
+            notifyFailedInUiThread(mOkListener, error);
         } else {
             synchronized (deferredDataList) {
                 deferredDataList.add(new DeferredData(error));
+
+                if (mOkListener != null) {
+                    sendDeferredData(mOkListener);
+                }
             }
         }
+    }
+
+    protected final void notifyFailedInUiThread(final OkListener listener, final String error) {
+        OkThreadUtil.executeOnMain(new Runnable() {
+            public void run() {
+                listener.onError(error);
+            }
+        });
     }
 
     protected final void notifySuccess(final JSONObject json) {
-        notifySuccess(mOkListener, json);
-    }
-
-    protected final void notifySuccess(final OkListener listener, final JSONObject json) {
-        if (listener != null) {
-            OkThreadUtil.executeOnMain(new Runnable() {
-                public void run() {
-                    listener.onSuccess(json);
-                }
-            });
+        if (mOkListener != null) {
+            notifySuccessInUiThread(mOkListener, json);
         } else {
             synchronized (deferredDataList) {
                 deferredDataList.add(new DeferredData(json));
+
+                if (mOkListener != null) {
+                    sendDeferredData(mOkListener);
+                }
             }
         }
+    }
+
+    protected final void notifySuccessInUiThread(final OkListener listener, final JSONObject json) {
+        OkThreadUtil.executeOnMain(new Runnable() {
+            public void run() {
+                listener.onSuccess(json);
+            }
+        });
     }
 
     /**
@@ -288,12 +296,12 @@ public class Odnoklassniki {
         try {
             JSONObject json = new JSONObject(response);
             if (json.has(Shared.PARAM_ERROR_MSG)) {
-                notifyFailed(listener, json.getString(Shared.PARAM_ERROR_MSG));
+                notifyFailedInUiThread(listener, json.getString(Shared.PARAM_ERROR_MSG));
             } else {
-                notifySuccess(listener, json);
+                notifySuccessInUiThread(listener, json);
             }
         } catch (JSONException e) {
-            notifyFailed(listener, response);
+            notifyFailedInUiThread(listener, response);
         }
     }
 
@@ -335,7 +343,7 @@ public class Odnoklassniki {
      */
     public final void checkValidTokens(final OkListener listener) {
         if (mAccessToken == null || mSessionSecretKey == null) {
-            notifyFailed(listener, mContext.getString(R.string.no_valid_token));
+            notifyFailedInUiThread(listener, mContext.getString(R.string.no_valid_token));
             return;
         }
 
@@ -352,20 +360,20 @@ public class Odnoklassniki {
                             json.put(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey);
                         } catch (JSONException e) {
                         }
-                        notifySuccess(listener, json);
+                        notifySuccessInUiThread(listener, json);
                     } else {
                         try {
                             JSONObject json = new JSONObject(response);
                             if (json.has(Shared.PARAM_ERROR_MSG)) {
-                                notifyFailed(listener, json.getString(Shared.PARAM_ERROR_MSG));
+                                notifyFailedInUiThread(listener, json.getString(Shared.PARAM_ERROR_MSG));
                                 return;
                             }
                         } catch (JSONException e) {
                         }
-                        notifyFailed(listener, response);
+                        notifyFailedInUiThread(listener, response);
                     }
                 } catch (IOException e) {
-                    notifyFailed(listener, e.getMessage());
+                    notifyFailedInUiThread(listener, e.getMessage());
                 }
             }
         }).start();
@@ -429,15 +437,33 @@ public class Odnoklassniki {
         params.put(Shared.PARAM_SIGN, sig);
     }
 
-    public final void setOkListener(OkListener listener) {
+    public final void setOkListener(final OkListener listener) {
+        sendDeferredData(listener);
+
         this.mOkListener = listener;
+    }
+
+    /**
+     *  Sends deferred data to listeners
+     *
+     * @param listener
+     */
+    private void sendDeferredData(final OkListener listener) {
         if (deferredDataList.size() > 0) {
             synchronized (deferredDataList) {
-                for (DeferredData deferredData : deferredDataList) {
+                for (final DeferredData deferredData : deferredDataList) {
                     if (deferredData.isDeferredDataError()) {
-                        listener.onError(deferredData.getDeferredErrorCode());
+                        OkThreadUtil.executeOnMain(new Runnable() {
+                            public void run() {
+                                listener.onError(deferredData.getDeferredErrorCode());
+                            }
+                        });
                     } else {
-                        listener.onSuccess(deferredData.getDeferredResponse());
+                        OkThreadUtil.executeOnMain(new Runnable() {
+                            public void run() {
+                                listener.onSuccess(deferredData.getDeferredResponse());
+                            }
+                        });
                     }
                 }
 
