@@ -15,7 +15,7 @@ import ru.ok.android.sdk.Odnoklassniki;
 import ru.ok.android.sdk.OkListener;
 import ru.ok.android.sdk.util.OkScope;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements OkListener {
     protected static final String APP_ID = "125497344";
     protected static final String APP_KEY = "CBABPLHIABABABABA";
     protected static final String REDIRECT_URL = "okauth://ok125497344";
@@ -31,27 +31,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         mLoginBtn = findViewById(R.id.sdk_login);
-        mLoginBtn.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(final View view) {
-                mOdnoklassniki.requestAuthorization(new OkListener() {
-                    @Override
-                    public void onSuccess(final JSONObject json) {
-                        try {
-                            Toast.makeText(MainActivity.this, String.format("access_token: %s", json.getString("access_token")), Toast.LENGTH_SHORT).show();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        showForm();
-                    }
 
-                    @Override
-                    public void onError(String error) {
-                        Toast.makeText(MainActivity.this, String.format("%s: %s", getString(R.string.error), error), Toast.LENGTH_SHORT).show();
-                    }
-                }, REDIRECT_URL, false, OkScope.VALUABLE_ACCESS);
-            }
-        });
 
         mFormView = findViewById(R.id.sdk_form);
         findViewById(R.id.sdk_get_currentuser).setOnClickListener(new OnClickListener() {
@@ -118,6 +98,43 @@ public class MainActivity extends Activity {
             }
         });
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mLoginBtn.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(final View view) {
+                mOdnoklassniki.requestAuthorization(MainActivity.this, REDIRECT_URL, false, OkScope.VALUABLE_ACCESS);
+            }
+        });
+
+        mOdnoklassniki.setOkListener(this);
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mLoginBtn.setOnClickListener(null);
+        mOdnoklassniki.removeOkListener();
+    }
+
+    @Override
+    public void onSuccess(final JSONObject json) {
+        try {
+            Toast.makeText(MainActivity.this, String.format("access_token: %s", json.getString("access_token")), Toast.LENGTH_SHORT).show();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        showForm();
+    }
+
+    @Override
+    public void onError(String error) {
+        Toast.makeText(MainActivity.this, String.format("%s: %s", getString(R.string.error), error), Toast.LENGTH_SHORT).show();
+    }
+
 
     protected final void showForm() {
         mFormView.setVisibility(View.VISIBLE);
