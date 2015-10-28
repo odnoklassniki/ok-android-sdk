@@ -23,6 +23,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.webkit.CookieSyncManager;
 import ru.ok.android.sdk.util.OkEncryptUtil;
@@ -32,7 +33,25 @@ import ru.ok.android.sdk.util.OkThreadUtil;
 
 public class Odnoklassniki {
     private static Odnoklassniki sOdnoklassniki;
-    private final List<DeferredData> deferredDataList = new LinkedList<>();
+    private final ConcurrentLinkedQueue<DeferredData> deferredDataList = new ConcurrentLinkedQueue<>();
+
+
+    private Context mContext;
+
+    // Application info
+    protected final String mAppId;
+    protected final String mAppKey;
+
+    // Current tokens
+    protected String mAccessToken;
+    protected String mSessionSecretKey;
+
+    // Listeners
+    protected volatile OkListener mOkListener;
+
+    // Stuff
+    protected final HttpClient mHttpClient;
+
 
     /**
      * @deprecated use {@link #createInstance(android.content.Context, String, String)} instead.
@@ -100,21 +119,6 @@ public class Odnoklassniki {
         mSessionSecretKey = TokenStore.getStoredSessionSecretKey(context);
     }
 
-    private Context mContext;
-
-    // Application info
-    protected final String mAppId;
-    protected final String mAppKey;
-
-    // Current tokens
-    protected String mAccessToken;
-    protected String mSessionSecretKey;
-
-    // Listeners
-    protected OkListener mOkListener;
-
-    // Stuff
-    protected final HttpClient mHttpClient;
 
 	/* *** AUTHORIZATION *** */
 
@@ -180,12 +184,13 @@ public class Odnoklassniki {
         if (mOkListener != null) {
             notifyFailedInUiThread(mOkListener, error);
         } else {
-            synchronized (deferredDataList) {
-                deferredDataList.add(new DeferredData(error));
+            deferredDataList.offer(new DeferredData(error));
 
-                if (mOkListener != null) {
-                    sendDeferredData(mOkListener);
-                }
+            /**
+             * Is needed for such case when while adding new data to queue listener will be set. Data will be already in queue, but listener may not know about it
+             */
+            if (mOkListener != null) {
+                sendDeferredData(mOkListener);
             }
         }
     }
@@ -202,12 +207,10 @@ public class Odnoklassniki {
         if (mOkListener != null) {
             notifySuccessInUiThread(mOkListener, json);
         } else {
-            synchronized (deferredDataList) {
-                deferredDataList.add(new DeferredData(json));
+            deferredDataList.offer(new DeferredData(json));
 
-                if (mOkListener != null) {
-                    sendDeferredData(mOkListener);
-                }
+            if (mOkListener != null) {
+                sendDeferredData(mOkListener);
             }
         }
     }
@@ -224,9 +227,7 @@ public class Odnoklassniki {
      * Removes deferred data if client do not need to receive something that was already requested but not received
      */
     public void clearDefferedData() {
-        synchronized (deferredDataList) {
-            deferredDataList.clear();
-        }
+        deferredDataList.clear();
     }
 
 	/* **** API REQUESTS *** */
@@ -437,6 +438,21 @@ public class Odnoklassniki {
         params.put(Shared.PARAM_SIGN, sig);
     }
 
+    /**
+     * Context (activity or fragment) from which you are setting listener by this method may go to background, or even be invalidated by Android OS during
+     * processing request. So there are at least 2 problems in such case:
+     * 1). If you will not remove listener in `onPause` or `onStop` method - when listener will be informed about result,
+     *     activity/fragment which is listening will be no longer be valid it will cause `IllegalStateException.html`.
+     *     (http://stackoverflow.com/questions/8040280/how-to-handle-handler-messages-when-activity-fragment-is-paused)
+     *     Also strong reference to MainActivity will still exist in SDK preventing JVM to free memory
+     *
+     * 2). If you will unsubscribe itself, result may come <b>before</b> same (or new activity/fragment) will subscribe itself. So data will be lost.
+     *     It can be easily reproduced by switching on option `Do not keep activities` (http://habrahabr.ru/post/221679/)
+     *
+     * So best practice is explicitly set and remove listeners in `onResume` and `onPause`, and be ready to receive deferred data immediately after setting callback
+     *
+     * @param listener
+     */
     public final void setOkListener(final OkListener listener) {
         sendDeferredData(listener);
 
@@ -455,13 +471,13 @@ public class Odnoklassniki {
                     if (deferredData.isDeferredDataError()) {
                         OkThreadUtil.executeOnMain(new Runnable() {
                             public void run() {
-                                listener.onError(deferredData.getDeferredErrorCode());
+                                listener.onError(deferredData.getErrorCode());
                             }
                         });
                     } else {
                         OkThreadUtil.executeOnMain(new Runnable() {
                             public void run() {
-                                listener.onSuccess(deferredData.getDeferredResponse());
+                                listener.onSuccess(deferredData.getResponse());
                             }
                         });
                     }
@@ -472,6 +488,9 @@ public class Odnoklassniki {
         }
     }
 
+    /**
+     * @see #setOkListener(OkListener)
+     */
     public final void removeOkListener() {
         this.mOkListener = null;
     }
@@ -509,43 +528,39 @@ public class Odnoklassniki {
     /**
      * Inner class to store
      */
-    private class DeferredData {
-        private boolean isDeferredDataError;
-
-        private String deferredErrorCode;
-        private JSONObject deferredResponse;
+    private static class DeferredData {
+        private String errorCode;
+        private JSONObject response;
 
 
         /**
          * Set deferredData as error code
          *
-         * @param deferredErrorCode
+         * @param errorCode
          */
-        public DeferredData(String deferredErrorCode) {
-            isDeferredDataError = true;
-            this.deferredErrorCode = deferredErrorCode;
-            this.deferredResponse = null;
+        public DeferredData(String errorCode) {
+            this.errorCode = errorCode;
+            this.response = null;
         }
 
         /**
-         * @param deferredResponse
+         * @param response
          */
-        public DeferredData(JSONObject deferredResponse) {
-            isDeferredDataError = false;
-            this.deferredErrorCode = null;
-            this.deferredResponse = deferredResponse;
+        public DeferredData(JSONObject response) {
+            this.errorCode = null;
+            this.response = response;
         }
 
         public boolean isDeferredDataError() {
-            return isDeferredDataError;
+            return errorCode != null;
         }
 
-        public String getDeferredErrorCode() {
-            return deferredErrorCode;
+        public String getErrorCode() {
+            return errorCode;
         }
 
-        public JSONObject getDeferredResponse() {
-            return deferredResponse;
+        public JSONObject getResponse() {
+            return response;
         }
     }
 }

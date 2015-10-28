@@ -99,9 +99,13 @@ public class MainActivity extends Activity implements OkListener {
         });
     }
 
+    /**
+     * @see Odnoklassniki#removeOkListener()
+     */
     @Override
     protected void onResume() {
         super.onResume();
+        //When you are clicking a button MainActivity explicitly is set as listener
         mLoginBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(final View view) {
@@ -109,10 +113,14 @@ public class MainActivity extends Activity implements OkListener {
             }
         });
 
+        /** @see Odnoklassniki#setOkListener() This is need when activity was set to background during request processing*/
         mOdnoklassniki.setOkListener(this);
     }
 
 
+    /**
+     * @see Odnoklassniki#setOkListener(OkListener)
+     */
     @Override
     protected void onPause() {
         super.onPause();
@@ -148,6 +156,7 @@ public class MainActivity extends Activity implements OkListener {
 
     // Using AsyncTask is arbitrary choice
     // Developers should do a better error handling job ;)
+    // `GetCurrentUserTask` will hold shadow strong reference to MainActivity that may suddenly die. Not a good practice.
 
     protected final class GetCurrentUserTask extends AsyncTask<Void, Void, String> {
         @Override
