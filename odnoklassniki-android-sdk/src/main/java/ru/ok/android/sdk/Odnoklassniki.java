@@ -21,11 +21,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import android.webkit.CookieSyncManager;
 import ru.ok.android.sdk.util.OkEncryptUtil;
@@ -35,6 +35,23 @@ import ru.ok.android.sdk.util.OkThreadUtil;
 
 public class Odnoklassniki {
     private static Odnoklassniki sOdnoklassniki;
+    private final ConcurrentLinkedQueue<DeferredData> deferredDataList = new ConcurrentLinkedQueue<>();
+
+    private Context mContext;
+
+    // Application info
+    protected final String mAppId;
+    protected final String mAppKey;
+
+    // Current tokens
+    protected String mAccessToken;
+    protected String mSessionSecretKey;
+
+    // Listeners
+    protected volatile OkListener mOkListener;
+
+    // Stuff
+    protected final HttpClient mHttpClient;
 
 
     /**
@@ -45,16 +62,24 @@ public class Odnoklassniki {
         return createInstance(context, appId, appKey);
     }
 
+
     /**
      * This method is required to be called before {@link Odnoklassniki#getInstance()}<br>
      * Note that instance is only created once. Multiple calls to this method wont' create multiple instances of the object
+     * (thread-safe singleton)
+     *
      */
     public static final Odnoklassniki createInstance(final Context context, final String appId, final String appKey) {
         if ((appId == null) || (appKey == null)) {
             throw new IllegalArgumentException(context.getString(R.string.no_application_data));
         }
+
         if (sOdnoklassniki == null) {
-            sOdnoklassniki = new Odnoklassniki(context.getApplicationContext(), appId, appKey);
+            synchronized (Odnoklassniki.class) {
+                if (sOdnoklassniki == null) {
+                    sOdnoklassniki = new Odnoklassniki(context.getApplicationContext(), appId, appKey);
+                }
+            }
         }
         return sOdnoklassniki;
     }
@@ -74,6 +99,11 @@ public class Odnoklassniki {
         return sOdnoklassniki;
     }
 
+    /**
+     * Check if singleton is instantiated
+     *
+     * @return true if instance exist, false if not
+     */
     public static final boolean hasInstance() {
         return (sOdnoklassniki != null);
     }
@@ -97,48 +127,33 @@ public class Odnoklassniki {
         mSessionSecretKey = TokenStore.getStoredSessionSecretKey(context);
     }
 
-    private Context mContext;
-
-    // Application info
-    protected final String mAppId;
-    protected final String mAppKey;
-
-    // Current tokens
-    protected String mAccessToken;
-    protected String mSessionSecretKey;
-
-    // Listeners
-    protected OkListener mOkListener;
-
-    // Stuff
-    protected final HttpClient mHttpClient;
 
 	/* *** AUTHORIZATION *** */
-
-    public final void requestAuthorization(final Context context) {
-        requestAuthorization(context, false, (String) null);
+    public final void requestAuthorization() {
+        requestAuthorization(false, (String) null);
     }
 
-    public final void requestAuthorization(final Context context, final OkListener listener, final boolean oauthOnly) {
-        requestAuthorization(listener, null, oauthOnly, (String) null);
+    public final void requestAuthorization(final Context context, final boolean oauthOnly) {
+        requestAuthorization(null, oauthOnly, (String) null);
     }
 
-    public final void requestAuthorization(final Context context, final boolean oauthOnly, final String... scopes) {
-        requestAuthorization(mOkListener, null, oauthOnly, scopes);
+    public final void requestAuthorization(final boolean oauthOnly, final String... scopes) {
+        requestAuthorization(null, oauthOnly, scopes);
     }
 
     /**
      * If user has Odnoklassniki application installed, SDK will try to authorize user through it, otherwise, for safety reasons, authorization through browser will be requested.<br>
      * With oauthOnly flag set to true, the authorization will be requested only through browser.
      *
-     * @param listener    listener which will be called after authorization
+     * Listener should be explicitly set by calling {@link #setOkListener(OkListener)}. If listener will be a context you <b>must</b>
+     * also explicitly remove your listener by calling {@link #removeOkListener()} when context may become invalid or paused
+     * `onPause` method is recommended
+     *
      * @param redirectUri the URI to which the access_token will be redirected
      * @param oauthOnly   true - use only web authorization, false - use web authorization or authorization via android app if installed
      * @param scopes      {@link OkScope} - application request permissions as per {@link OkScope}.
      */
-    public final void requestAuthorization(OkListener listener, String redirectUri, final boolean oauthOnly, final String... scopes) {
-        this.mOkListener = listener;
-
+    public final void requestAuthorization(String redirectUri, final boolean oauthOnly, final String... scopes) {
         final Intent intent = new Intent(mContext, OkAuthActivity.class);
         intent.putExtra(Shared.PARAM_CLIENT_ID, mAppId);
         intent.putExtra(Shared.PARAM_APP_KEY, mAppKey);
@@ -174,31 +189,58 @@ public class Odnoklassniki {
     }
 
     protected final void notifyFailed(final String error) {
-        notifyFailed(mOkListener, error);
+        //Cheap check
+        if (mOkListener != null) {
+            notifyFailedInUiThread(mOkListener, error);
+        } else {
+            //Expensive with lock check
+            synchronized (deferredDataList) {
+                if (mOkListener != null) {
+                    notifyFailedInUiThread(mOkListener, error);
+                } else {
+                    deferredDataList.offer(new DeferredData(error));
+                }
+            }
+        }
     }
 
-    protected final void notifyFailed(final OkListener listener, final String error) {
-        if (listener != null) {
-            OkThreadUtil.executeOnMain(new Runnable() {
-                public void run() {
-                    listener.onError(error);
-                }
-            });
-        }
+    protected final void notifyFailedInUiThread(final OkListener listener, final String error) {
+        OkThreadUtil.executeOnMain(new Runnable() {
+            public void run() {
+                listener.onError(error);
+            }
+        });
     }
 
     protected final void notifySuccess(final JSONObject json) {
-        notifySuccess(mOkListener, json);
+        //Cheap check
+        if (mOkListener != null) {
+            notifySuccessInUiThread(mOkListener, json);
+        } else {
+            //Expensive with lock check
+            synchronized (deferredDataList) {
+                if (mOkListener != null) {
+                    notifySuccessInUiThread(mOkListener, json);
+                } else {
+                    deferredDataList.offer(new DeferredData(json));
+                }
+            }
+        }
     }
 
-    protected final void notifySuccess(final OkListener listener, final JSONObject json) {
-        if (listener != null) {
-            OkThreadUtil.executeOnMain(new Runnable() {
-                public void run() {
-                    listener.onSuccess(json);
-                }
-            });
-        }
+    protected final void notifySuccessInUiThread(final OkListener listener, final JSONObject json) {
+        OkThreadUtil.executeOnMain(new Runnable() {
+            public void run() {
+                listener.onSuccess(json);
+            }
+        });
+    }
+
+    /**
+     * Removes deferred data if client do not need to receive something that was already requested but not received
+     */
+    public void clearDefferedData() {
+        deferredDataList.clear();
     }
 
 	/* **** API REQUESTS *** */
@@ -213,8 +255,8 @@ public class Odnoklassniki {
      * @return query result
      * @throws IOException in case of a problem or the connection was aborted.
      */
-    public final String request(final String apiMethod, final String httpMethod) throws IOException {
-        return request(apiMethod, null, httpMethod);
+    public final String requestSync(final String apiMethod, final String httpMethod) throws IOException {
+        return requestSync(apiMethod, null, httpMethod);
     }
 
     /**
@@ -228,7 +270,7 @@ public class Odnoklassniki {
      * @return query result
      * @throws IOException
      */
-    public final String request(final String apiMethod, final Map<String, String> params, final String httpMethod)
+    public final String requestSync(final String apiMethod, final Map<String, String> params, final String httpMethod)
             throws IOException {
         if (TextUtils.isEmpty(apiMethod)) {
             throw new IllegalArgumentException(mContext.getString(R.string.api_method_cant_be_empty));
@@ -259,21 +301,20 @@ public class Odnoklassniki {
      * @param apiMethod  - odnoklassniki api method.
      * @param params     - map of key-value params
      * @param httpMethod - only "get" and "post" are supported.
-     * @param listener   - listener which will be called after method call
      * @throws IOException
      */
-    public final void request(final String apiMethod, final Map<String, String> params,
-                              final String httpMethod, OkListener listener) throws IOException {
-        String response = request(apiMethod, params, httpMethod);
+    public final void requestAsync(final String apiMethod, final Map<String, String> params,
+                                   final String httpMethod) throws IOException {
+        String response = requestSync(apiMethod, params, httpMethod);
         try {
             JSONObject json = new JSONObject(response);
             if (json.has(Shared.PARAM_ERROR_MSG)) {
-                notifyFailed(listener, json.getString(Shared.PARAM_ERROR_MSG));
+                notifyFailedInUiThread(mOkListener, json.getString(Shared.PARAM_ERROR_MSG));
             } else {
-                notifySuccess(listener, json);
+                notifySuccessInUiThread(mOkListener, json);
             }
         } catch (JSONException e) {
-            notifyFailed(listener, response);
+            notifyFailedInUiThread(mOkListener, response);
         }
     }
 
@@ -306,16 +347,16 @@ public class Odnoklassniki {
             final String deviceParamValue = TextUtils.join(",", deviceGroups);
             params.put("devices", deviceParamValue);
         }
-        return request("friends.appInvite", params, "get");
+        return requestSync("friends.appInvite", params, "get");
     }
 
     /**
      * Check if access token is available (can be used to check if previously used access token and refresh token was successfully loaded from the storage).
      * Also check is it valid with method call
      */
-    public final void checkValidTokens(final OkListener listener) {
+    public final void checkValidTokens() {
         if (mAccessToken == null || mSessionSecretKey == null) {
-            notifyFailed(listener, mContext.getString(R.string.no_valid_token));
+            notifyFailedInUiThread(mOkListener, mContext.getString(R.string.no_valid_token));
             return;
         }
 
@@ -323,7 +364,7 @@ public class Odnoklassniki {
             @Override
             public void run() {
                 try {
-                    String response = request("users.getLoggedInUser", "get");
+                    String response = requestSync("users.getLoggedInUser", "get");
 
                     if (response != null && response.length() > 2 && TextUtils.isDigitsOnly(response.substring(1, response.length() - 1))) {
                         JSONObject json = new JSONObject();
@@ -332,20 +373,20 @@ public class Odnoklassniki {
                             json.put(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey);
                         } catch (JSONException e) {
                         }
-                        notifySuccess(listener, json);
+                        notifySuccessInUiThread(mOkListener, json);
                     } else {
                         try {
                             JSONObject json = new JSONObject(response);
                             if (json.has(Shared.PARAM_ERROR_MSG)) {
-                                notifyFailed(listener, json.getString(Shared.PARAM_ERROR_MSG));
+                                notifyFailedInUiThread(mOkListener, json.getString(Shared.PARAM_ERROR_MSG));
                                 return;
                             }
                         } catch (JSONException e) {
                         }
-                        notifyFailed(listener, response);
+                        notifyFailedInUiThread(mOkListener, response);
                     }
                 } catch (IOException e) {
-                    notifyFailed(listener, e.getMessage());
+                    notifyFailedInUiThread(mOkListener, e.getMessage());
                 }
             }
         }).start();
@@ -356,11 +397,8 @@ public class Odnoklassniki {
      *
      * @param attachment      - json with publishing attachment
      * @param userTextEnabled - ability to enable user comment
-     * @param postingListener - listener which will be called after method call
      */
-    public void performPosting(String attachment, boolean userTextEnabled, OkListener postingListener) {
-        this.mOkListener = postingListener;
-
+    public void performPosting(String attachment, boolean userTextEnabled) {
         Intent intent = new Intent(mContext, OkPostingActivity.class);
         intent.putExtra(Shared.PARAM_APP_ID, mAppId);
         intent.putExtra(Shared.PARAM_ATTACHMENT, attachment);
@@ -374,23 +412,20 @@ public class Odnoklassniki {
     /**
      * Calls application invite widget
      *
-     * @param listener callback notification listener
      */
-    public void performAppInvite(OkListener listener) {
-        performAppSuggestInvite(listener, OkAppInviteActivity.class);
+    public void performAppInvite() {
+        performAppSuggestInvite(OkAppInviteActivity.class);
     }
 
     /**
      * Calls application suggest widget
      *
-     * @param listener callback notification listener
      */
-    public void performAppSuggest(OkListener listener) {
-        performAppSuggestInvite(listener, OkAppSuggestActivity.class);
+    public void performAppSuggest() {
+        performAppSuggestInvite(OkAppSuggestActivity.class);
     }
 
-    private void performAppSuggestInvite(OkListener listener, Class<? extends AbstractWidgetActivity> clazz) {
-        this.mOkListener = listener;
+    private void performAppSuggestInvite(Class<? extends AbstractWidgetActivity> clazz) {
         Intent intent = new Intent(mContext, clazz);
         intent.putExtra(Shared.PARAM_APP_ID, mAppId);
         intent.putExtra(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
@@ -409,10 +444,60 @@ public class Odnoklassniki {
         params.put(Shared.PARAM_SIGN, sig);
     }
 
-    public final void setOkListener(OkListener listener) {
+    /**
+     * Context (activity or fragment) from which you are setting listener by this method may go to background, or even be invalidated by Android OS during
+     * processing request. So there are at least 2 problems in such case:
+     * 1). If you will not remove listener in `onPause` or `onStop` method - when listener will be informed about result,
+     *     activity/fragment which is listening will be no longer be valid. If you will try to change fragment in back stack or go to another activity it will cause `IllegalStateException`.
+     *     (http://stackoverflow.com/questions/8040280/how-to-handle-handler-messages-when-activity-fragment-is-paused)
+     *     Also strong reference to MainActivity will still exist in SDK preventing JVM from freeing memory
+     *
+     * 2). If you will unsubscribe itself, result may come <b>before</b> same (or new activity/fragment) will subscribe itself. So data will be lost.
+     *     It can be easily reproduced by switching on option `Do not keep activities` (http://habrahabr.ru/post/221679/) on device. Every time when you leave you activity/fragment which
+     *     is interested in result it will be "killed" and every time you will come back to re-created activity/fragment result will be lost
+     *
+     * So best practice is explicitly set and remove listeners in `onResume` and `onPause`, and be ready to receive deferred data immediately after setting callback
+     *
+     * @param listener
+     */
+    public final void setOkListener(final OkListener listener) {
+        sendDeferredData(listener);
+
         this.mOkListener = listener;
     }
 
+    /**
+     *  Sends deferred data to listeners
+     *
+     * @param listener
+     */
+    private void sendDeferredData(final OkListener listener) {
+        if (deferredDataList.size() > 0) {
+            synchronized (deferredDataList) {
+                for (final DeferredData deferredData : deferredDataList) {
+                    if (deferredData.isDeferredDataError()) {
+                        OkThreadUtil.executeOnMain(new Runnable() {
+                            public void run() {
+                                listener.onError(deferredData.getErrorCode());
+                            }
+                        });
+                    } else {
+                        OkThreadUtil.executeOnMain(new Runnable() {
+                            public void run() {
+                                listener.onSuccess(deferredData.getResponse());
+                            }
+                        });
+                    }
+                }
+
+                deferredDataList.clear();
+            }
+        }
+    }
+
+    /**
+     * @see #setOkListener(OkListener)
+     */
     public final void removeOkListener() {
         this.mOkListener = null;
     }
@@ -444,5 +529,45 @@ public class Odnoklassniki {
         CookieSyncManager.createInstance(mContext);
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.removeAllCookie();
+    }
+
+
+    /**
+     * Inner class to store
+     */
+    private static class DeferredData {
+        private String errorCode;
+        private JSONObject response;
+
+
+        /**
+         * Set deferredData as error code
+         *
+         * @param errorCode
+         */
+        public DeferredData(String errorCode) {
+            this.errorCode = errorCode;
+            this.response = null;
+        }
+
+        /**
+         * @param response
+         */
+        public DeferredData(JSONObject response) {
+            this.errorCode = null;
+            this.response = response;
+        }
+
+        public boolean isDeferredDataError() {
+            return errorCode != null;
+        }
+
+        public String getErrorCode() {
+            return errorCode;
+        }
+
+        public JSONObject getResponse() {
+            return response;
+        }
     }
 }
