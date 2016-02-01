@@ -1,5 +1,9 @@
 package ru.ok.android.sdk;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -11,9 +15,17 @@ import ru.ok.android.sdk.util.OkEncryptUtil;
 
 public class OkAppInviteActivity extends AbstractWidgetActivity {
 
+    protected HashMap<String, String> args;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null) {
+            args = (HashMap<String, String>) bundle.getSerializable(Shared.PARAM_WIDGET_ARGS);
+        }
+
         setContentView(getActivityView());
         prepareWebView();
         loadPage();
@@ -34,11 +46,25 @@ public class OkAppInviteActivity extends AbstractWidgetActivity {
     }
 
     private void loadPage() {
-        String signature = OkEncryptUtil.toMD5(String.format("st.return=%s%s", getReturnUrl(), mSessionSecretKey));
-        String url = getBaseUrl() +
-                "&st.signature=" + signature +
-                "&st.popup=on&st.silent=on";
-        ((WebView) findViewById(R.id.web_view)).loadUrl(url);
+        TreeMap<String, String> params = new TreeMap<>();
+        if (args != null) {
+            for (Map.Entry<String, String> e : args.entrySet()) {
+                params.put(e.getKey(), e.getValue());
+            }
+        }
+        params.put("st.return", getReturnUrl());
+
+        StringBuilder sigSource = new StringBuilder();
+        StringBuilder url = new StringBuilder(getBaseUrl());
+        for (Map.Entry<String, String> e : params.entrySet()) {
+            sigSource.append(e.getKey()).append('=').append(e.getValue());
+            if (!e.getKey().equals("st.return")) {
+                url.append('&').append(e.getKey()).append('=').append(e.getValue());
+            }
+        }
+        String signature = OkEncryptUtil.toMD5(sigSource + mSessionSecretKey);
+        url.append("&st.popup=on&st.silent=on").append("&st.signature=").append(signature);
+        ((WebView) findViewById(R.id.web_view)).loadUrl(url.toString());
     }
 
     @Override

@@ -31,6 +31,7 @@ final class Shared {
     static final String PARAM_TYPE = "type";
     static final String PARAM_CODE = "code";
     static final String PARAM_USER_TEXT_ENABLE = "utext";
+    static final String PARAM_WIDGET_ARGS = "widget_args";
 
     // Api
     static final String API_URL = REMOTE_API + "fb.do";

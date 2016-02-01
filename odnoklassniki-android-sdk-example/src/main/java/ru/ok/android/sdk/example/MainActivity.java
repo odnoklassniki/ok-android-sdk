@@ -95,13 +95,13 @@ public class MainActivity extends Activity {
         findViewById(R.id.sdk_app_invite).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                mOdnoklassniki.performAppInvite(toasterListener);
+                mOdnoklassniki.performAppInvite(toasterListener, null);
             }
         });
         findViewById(R.id.sdk_app_suggest).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                mOdnoklassniki.performAppSuggest(toasterListener);
+                mOdnoklassniki.performAppSuggest(toasterListener, null);
             }
         });
 
