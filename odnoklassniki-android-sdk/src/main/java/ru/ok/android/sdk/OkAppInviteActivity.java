@@ -57,7 +57,9 @@ public class OkAppInviteActivity extends AbstractWidgetActivity {
         StringBuilder sigSource = new StringBuilder();
         StringBuilder url = new StringBuilder(getBaseUrl());
         for (Map.Entry<String, String> e : params.entrySet()) {
-            sigSource.append(e.getKey()).append('=').append(e.getValue());
+            if (Shared.WIDGET_SIGNED_ARGS.contains(e.getKey())) {
+                sigSource.append(e.getKey()).append('=').append(e.getValue());
+            }
             if (!e.getKey().equals("st.return")) {
                 url.append('&').append(e.getKey()).append('=').append(e.getValue());
             }

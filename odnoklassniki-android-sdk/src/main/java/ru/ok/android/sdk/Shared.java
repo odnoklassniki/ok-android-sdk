@@ -1,5 +1,8 @@
 package ru.ok.android.sdk;
 
+import java.util.Arrays;
+import java.util.List;
+
 final class Shared {
     static final String REMOTE_PORTAL = "https://ok.ru/";
     static final String REMOTE_API = "http://api.ok.ru/";
@@ -37,4 +40,10 @@ final class Shared {
     static final String API_URL = REMOTE_API + "fb.do";
 
     static final String PREFERENCES_FILE = "oksdkprefs";
+
+    /**
+     * viral widget arguments that need to be signed
+     */
+    static final List<String> WIDGET_SIGNED_ARGS =
+            Arrays.asList("st.attachment", "st.return", "st.redirect_uri", "st.state");
 }
