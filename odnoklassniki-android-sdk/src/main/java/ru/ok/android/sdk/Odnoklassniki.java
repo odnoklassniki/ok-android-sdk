@@ -40,7 +40,7 @@ public class Odnoklassniki {
      * @deprecated use {@link #createInstance(android.content.Context, String, String)} instead.
      */
     @Deprecated
-    public static final Odnoklassniki createInstance(final Context context, final String appId, final String appSecret, final String appKey) {
+    public static Odnoklassniki createInstance(final Context context, final String appId, final String appSecret, final String appKey) {
         return createInstance(context, appId, appKey);
     }
 
@@ -48,7 +48,7 @@ public class Odnoklassniki {
      * This method is required to be called before {@link Odnoklassniki#getInstance()}<br>
      * Note that instance is only created once. Multiple calls to this method wont' create multiple instances of the object
      */
-    public static final Odnoklassniki createInstance(final Context context, final String appId, final String appKey) {
+    public static Odnoklassniki createInstance(final Context context, final String appId, final String appKey) {
         if ((appId == null) || (appKey == null)) {
             throw new IllegalArgumentException(context.getString(R.string.no_application_data));
         }
@@ -62,18 +62,18 @@ public class Odnoklassniki {
      * Get previously created instance.<br>
      * You must always call {@link Odnoklassniki#createInstance(Context, String, String)} before calling this method, or {@link IllegalStateException} will be thrown
      */
-    public static final Odnoklassniki getInstance(Context context) {
+    public static Odnoklassniki getInstance(Context context) {
         return getInstance();
     }
 
-    public static final Odnoklassniki getInstance() {
+    public static Odnoklassniki getInstance() {
         if (sOdnoklassniki == null) {
             throw new IllegalStateException("No instance available. Odnoklassniki.createInstance() needs to be called before Odnoklassniki.getInstance()");
         }
         return sOdnoklassniki;
     }
 
-    public static final boolean hasInstance() {
+    public static boolean hasInstance() {
         return (sOdnoklassniki != null);
     }
 
@@ -165,7 +165,7 @@ public class Odnoklassniki {
                 try {
                     json.put(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
                     json.put(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey);
-                } catch (JSONException e) {
+                } catch (JSONException ignore) {
                 }
                 notifySuccess(json);
             }
@@ -232,20 +232,20 @@ public class Odnoklassniki {
         if (TextUtils.isEmpty(apiMethod)) {
             throw new IllegalArgumentException(mContext.getString(R.string.api_method_cant_be_empty));
         }
-        Map<String, String> requestparams = new TreeMap<String, String>();
+        Map<String, String> requestParams = new TreeMap<>();
         if ((params != null) && !params.isEmpty()) {
-            requestparams.putAll(params);
+            requestParams.putAll(params);
         }
-        requestparams.put(Shared.PARAM_APP_KEY, mAppKey);
-        requestparams.put(Shared.PARAM_METHOD, apiMethod);
-        signParameters(requestparams);
-        requestparams.put(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
+        requestParams.put(Shared.PARAM_APP_KEY, mAppKey);
+        requestParams.put(Shared.PARAM_METHOD, apiMethod);
+        signParameters(requestParams);
+        requestParams.put(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
         final String requestUrl = Shared.API_URL;
-        String response = null;
+        String response;
         if ("post".equalsIgnoreCase(httpMethod)) {
-            response = OkNetUtil.performPostRequest(mHttpClient, requestUrl, requestparams);
+            response = OkNetUtil.performPostRequest(mHttpClient, requestUrl, requestParams);
         } else {
-            response = OkNetUtil.performGetRequest(mHttpClient, requestUrl, requestparams);
+            response = OkNetUtil.performGetRequest(mHttpClient, requestUrl, requestParams);
         }
         return response;
     }
@@ -296,7 +296,7 @@ public class Odnoklassniki {
             throw new IllegalArgumentException(mContext.getString(R.string.friend_uids_cant_be_empty));
         }
         final String friendsParamValue = TextUtils.join(",", friendUids);
-        final Map<String, String> params = new HashMap<String, String>();
+        final Map<String, String> params = new HashMap<>();
         params.put("uids", friendsParamValue);
         if (!TextUtils.isEmpty(invitationText)) {
             params.put("text", invitationText);
@@ -329,7 +329,7 @@ public class Odnoklassniki {
                         try {
                             json.put(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
                             json.put(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey);
-                        } catch (JSONException e) {
+                        } catch (JSONException ignore) {
                         }
                         notifySuccess(listener, json);
                     } else {
@@ -339,7 +339,7 @@ public class Odnoklassniki {
                                 notifyFailed(listener, json.getString(Shared.PARAM_ERROR_MSG));
                                 return;
                             }
-                        } catch (JSONException e) {
+                        } catch (JSONException ignore) {
                         }
                         notifyFailed(listener, response);
                     }

@@ -1,5 +1,9 @@
 apply plugin: 'com.android.library'
 
+dependencies {
+    compile 'com.google.android.gms:play-services-ads:8.4.0'
+}
+
 android {
     compileSdkVersion rootProject.property("android.compile.sdk.version") as int
     buildToolsVersion rootProject.property("android.build.tools.version")

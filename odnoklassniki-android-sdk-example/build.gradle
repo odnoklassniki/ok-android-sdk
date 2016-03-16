@@ -5,7 +5,7 @@ android {
     buildToolsVersion rootProject.property("android.build.tools.version")
 
     defaultConfig {
-        minSdkVersion 4
+        minSdkVersion 9
         targetSdkVersion 21
         versionCode 1
         versionName '1.0'

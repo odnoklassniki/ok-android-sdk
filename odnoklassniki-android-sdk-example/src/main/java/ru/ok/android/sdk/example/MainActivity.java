@@ -57,13 +57,13 @@ public class MainActivity extends Activity {
         findViewById(R.id.sdk_get_currentuser).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(final View view) {
-                new GetCurrentUserTask().execute(new Void[0]);
+                new GetCurrentUserTask().execute();
             }
         });
         findViewById(R.id.sdk_get_friends).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(final View view) {
-                new GetFriendsTask().execute(new Void[0]);
+                new GetFriendsTask().execute();
             }
         });
         findViewById(R.id.sdk_logout).setOnClickListener(new OnClickListener() {

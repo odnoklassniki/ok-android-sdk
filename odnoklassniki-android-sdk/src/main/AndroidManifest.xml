@@ -2,6 +2,6 @@
     package="ru.ok.android.sdk"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-sdk android:minSdkVersion="4"/>
+    <uses-sdk android:minSdkVersion="9"/>
     <application/>
 </manifest>
