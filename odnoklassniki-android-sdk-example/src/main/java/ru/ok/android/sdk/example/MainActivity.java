@@ -1,18 +1,20 @@
 package ru.ok.android.sdk.example;
 
-import android.app.Activity;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Toast;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Activity;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.Toast;
 import ru.ok.android.sdk.Odnoklassniki;
 import ru.ok.android.sdk.OkListener;
+import ru.ok.android.sdk.util.OkAuthType;
 import ru.ok.android.sdk.util.OkScope;
 
 public class MainActivity extends Activity {
@@ -20,40 +22,26 @@ public class MainActivity extends Activity {
     protected static final String APP_KEY = "CBABPLHIABABABABA";
     protected static final String REDIRECT_URL = "okauth://ok125497344";
 
-    protected Odnoklassniki mOdnoklassniki;
+    protected Odnoklassniki odnoklassniki;
 
-    private View mLoginBtn;
-    private View mFormView;
+    private View loginView;
+    private View formView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mLoginBtn = findViewById(R.id.sdk_login);
-        mLoginBtn.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(final View view) {
-                mOdnoklassniki.requestAuthorization(new OkListener() {
-                    @Override
-                    public void onSuccess(final JSONObject json) {
-                        try {
-                            Toast.makeText(MainActivity.this, String.format("access_token: %s", json.getString("access_token")), Toast.LENGTH_SHORT).show();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        showForm();
-                    }
+        loginView = findViewById(R.id.login_block);
 
-                    @Override
-                    public void onError(String error) {
-                        Toast.makeText(MainActivity.this, String.format("%s: %s", getString(R.string.error), error), Toast.LENGTH_SHORT).show();
-                    }
-                }, REDIRECT_URL, false, OkScope.VALUABLE_ACCESS);
-            }
-        });
+        Button mLoginBtn = (Button) findViewById(R.id.sdk_login_any);
+        Button mLoginBtnSso = (Button) findViewById(R.id.sdk_login_sso);
+        Button mLoginBtnOAuth = (Button) findViewById(R.id.sdk_login_oauth);
+        mLoginBtn.setOnClickListener(new LoginClickListener(OkAuthType.ANY));
+        mLoginBtnSso.setOnClickListener(new LoginClickListener(OkAuthType.NATIVE_SSO));
+        mLoginBtnOAuth.setOnClickListener(new LoginClickListener(OkAuthType.WEBVIEW_OAUTH));
 
-        mFormView = findViewById(R.id.sdk_form);
+        formView = findViewById(R.id.sdk_form);
         findViewById(R.id.sdk_get_currentuser).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(final View view) {
@@ -69,7 +57,7 @@ public class MainActivity extends Activity {
         findViewById(R.id.sdk_logout).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(final View view) {
-                mOdnoklassniki.clearTokens();
+                odnoklassniki.clearTokens();
                 hideForm();
             }
         });
@@ -89,24 +77,25 @@ public class MainActivity extends Activity {
         findViewById(R.id.sdk_post).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                mOdnoklassniki.performPosting("{\"media\":[{\"type\":\"text\",\"text\":\"hello world!\"}]}", false, toasterListener);
+                odnoklassniki.performPosting("{\"media\":[{\"type\":\"text\",\"text\":\"hello world!\"}]}",
+                        false, null, toasterListener);
             }
         });
         findViewById(R.id.sdk_app_invite).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                mOdnoklassniki.performAppInvite(toasterListener, null);
+                odnoklassniki.performAppInvite(toasterListener, null);
             }
         });
         findViewById(R.id.sdk_app_suggest).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                mOdnoklassniki.performAppSuggest(toasterListener, null);
+                odnoklassniki.performAppSuggest(toasterListener, null);
             }
         });
 
-        mOdnoklassniki = Odnoklassniki.createInstance(this, APP_ID, APP_KEY);
-        mOdnoklassniki.checkValidTokens(new OkListener() {
+        odnoklassniki = Odnoklassniki.createInstance(this, APP_ID, APP_KEY);
+        odnoklassniki.checkValidTokens(new OkListener() {
             @Override
             public void onSuccess(JSONObject json) {
                 showForm();
@@ -120,13 +109,13 @@ public class MainActivity extends Activity {
     }
 
     protected final void showForm() {
-        mFormView.setVisibility(View.VISIBLE);
-        mLoginBtn.setVisibility(View.GONE);
+        formView.setVisibility(View.VISIBLE);
+        loginView.setVisibility(View.GONE);
     }
 
     protected final void hideForm() {
-        mFormView.setVisibility(View.GONE);
-        mLoginBtn.setVisibility(View.VISIBLE);
+        formView.setVisibility(View.GONE);
+        loginView.setVisibility(View.VISIBLE);
     }
 
     // Using AsyncTask is arbitrary choice
@@ -136,7 +125,7 @@ public class MainActivity extends Activity {
         @Override
         protected String doInBackground(final Void... params) {
             try {
-                return mOdnoklassniki.request("users.getCurrentUser", null, "get");
+                return odnoklassniki.request("users.getCurrentUser", null, "get");
             } catch (Exception exc) {
                 Log.e("Odnoklassniki", "Failed to get current user info", exc);
             }
@@ -155,7 +144,7 @@ public class MainActivity extends Activity {
         @Override
         protected String doInBackground(final Void... params) {
             try {
-                return mOdnoklassniki.request("friends.get", null, "get");
+                return odnoklassniki.request("friends.get", null, "get");
             } catch (Exception exc) {
                 Log.e("Odnoklassniki", "Failed to get friends", exc);
             }
@@ -167,6 +156,43 @@ public class MainActivity extends Activity {
             if (result != null) {
                 Toast.makeText(MainActivity.this, "Get user friends result: " + result, Toast.LENGTH_SHORT).show();
             }
+        }
+    }
+
+    protected class LoginClickListener implements OnClickListener {
+        private OkAuthType authType;
+
+        public LoginClickListener(OkAuthType authType) {
+            this.authType = authType;
+        }
+
+        @Override
+        public void onClick(final View view) {
+            odnoklassniki.requestAuthorization(prepareOkListener(), REDIRECT_URL, authType, OkScope.VALUABLE_ACCESS);
+        }
+
+        @NonNull
+        private OkListener prepareOkListener() {
+            return new OkListener() {
+                @Override
+                public void onSuccess(final JSONObject json) {
+                    try {
+                        Toast.makeText(MainActivity.this,
+                                String.format("access_token: %s", json.getString("access_token")),
+                                Toast.LENGTH_SHORT).show();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    showForm();
+                }
+
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(MainActivity.this,
+                            String.format("%s: %s", getString(R.string.error), error),
+                            Toast.LENGTH_SHORT).show();
+                }
+            };
         }
     }
 }

@@ -4,7 +4,9 @@
 
     <string name="error">Error</string>
 
-    <string name="login">Login</string>
+    <string name="login">Login (try SSO, then client OAUTH)</string>
+    <string name="login_sso">Login via native SSO only</string>
+    <string name="login_oauth">Login via client OAUTH only</string>
     <string name="call_users_get_current_user">Call users.getCurrentUser</string>
     <string name="call_user_get_friends">Call users.getFriends</string>
     <string name="post_widget">Post with posting widget</string>

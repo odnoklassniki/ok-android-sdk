@@ -10,9 +10,6 @@ final class Shared {
 
     static final String OAUTH_GET_TOKEN_URL = REMOTE_PORTAL + "oauth/authorize?client_id=%s&response_type=token&redirect_uri=%s&layout=m";
 
-    // Messages
-    static final int MESSAGE_AUTH_RESULT = 1337;
-
     // Params
     static final String PARAM_ACCESS_TOKEN = "access_token";
     static final String PARAM_APP_ID = "appId";
@@ -23,9 +20,8 @@ final class Shared {
     static final String PARAM_ERROR = "error";
     static final String PARAM_ERROR_MSG = "error_msg";
     static final String PARAM_MESSAGE = "message";
-    static final String PARAM_MESSENGER = "msngr";
     static final String PARAM_METHOD = "method";
-    static final String PARAM_OAUTH_ONLY = "oauth_only";
+    static final String PARAM_AUTH_TYPE = "auth_type";
     static final String PARAM_REDIRECT_URI = "redirect_uri";
     static final String PARAM_REFRESH_TOKEN = "refresh_token";
     static final String PARAM_SCOPES = "scopes";

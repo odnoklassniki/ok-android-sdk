@@ -18,6 +18,7 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
+import ru.ok.android.sdk.util.OkAuthType;
 
 import java.net.URLEncoder;
 
@@ -30,7 +31,7 @@ public class OkAuthActivity extends Activity {
     private String mAppKey;
     private String mRedirectUri;
     private String[] mScopes;
-    private boolean mOauthOnly;
+    private OkAuthType authType;
 
     private WebView mWebView;
 
@@ -48,8 +49,8 @@ public class OkAuthActivity extends Activity {
             mRedirectUri = DEFAULT_REDIRECT_URI;
         }
         mScopes = bundle.getStringArray(Shared.PARAM_SCOPES);
-        mOauthOnly = bundle.getBoolean(Shared.PARAM_OAUTH_ONLY);
-        auth(mOauthOnly);
+        authType = (OkAuthType) bundle.getSerializable(Shared.PARAM_AUTH_TYPE);
+        auth();
     }
 
     private void prepareWebView() {
@@ -65,7 +66,7 @@ public class OkAuthActivity extends Activity {
         outState.putString(Shared.PARAM_APP_KEY, mAppKey);
         outState.putString(Shared.PARAM_REDIRECT_URI, mRedirectUri);
         outState.putStringArray(Shared.PARAM_SCOPES, mScopes);
-        outState.putBoolean(Shared.PARAM_OAUTH_ONLY, mOauthOnly);
+        outState.putSerializable(Shared.PARAM_AUTH_TYPE, authType);
     }
 
     @Override
@@ -77,14 +78,20 @@ public class OkAuthActivity extends Activity {
         return false;
     }
 
-    private void auth(boolean oauthOnly) {
-        if (hasAppInfo()) {
-            if (oauthOnly || !trySsoAuthorization()) {
-                mWebView.loadUrl(buildOAuthUrl());
-            }
-        } else {
-            // If missing any extras required for auth
+    private void auth() {
+        if (!hasAppInfo()) {
             onFail(getString(R.string.no_application_data));
+            return;
+        }
+
+        if ((authType == OkAuthType.NATIVE_SSO) || (authType == OkAuthType.ANY)) {
+            if (startSsoAuthorization()) {
+                return;
+            }
+        }
+
+        if ((authType == OkAuthType.WEBVIEW_OAUTH) || (authType == OkAuthType.ANY)) {
+            mWebView.loadUrl(buildOAuthUrl());
         }
     }
 
@@ -99,7 +106,7 @@ public class OkAuthActivity extends Activity {
     }
 
     /* SSO AUTHORIZATION */
-    private boolean trySsoAuthorization() {
+    private boolean startSsoAuthorization() {
         boolean ssoAvailable = false;
         final Intent intent = new Intent();
         intent.setClassName("ru.ok.android", "ru.ok.android.external.LoginExternal");
@@ -112,7 +119,7 @@ public class OkAuthActivity extends Activity {
                         ssoAvailable = true;
                     }
                 }
-            } catch (NameNotFoundException exc) {
+            } catch (NameNotFoundException ignore) {
             }
             if (ssoAvailable) {
                 intent.putExtra(Shared.PARAM_CLIENT_ID, mAppId);
@@ -187,7 +194,7 @@ public class OkAuthActivity extends Activity {
         builder.setPositiveButton(getString(R.string.retry), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                auth(mOauthOnly);
+                auth();
             }
         });
         builder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {

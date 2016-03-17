@@ -28,6 +28,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
+import ru.ok.android.sdk.util.OkAuthType;
 import ru.ok.android.sdk.util.OkEncryptUtil;
 import ru.ok.android.sdk.util.OkNetUtil;
 import ru.ok.android.sdk.util.OkScope;
@@ -113,37 +114,24 @@ public class Odnoklassniki {
     // Stuff
     protected final HttpClient mHttpClient;
 
-	/* *** AUTHORIZATION *** */
-
-    public final void requestAuthorization(final Context context) {
-        requestAuthorization(context, false, (String) null);
-    }
-
-    public final void requestAuthorization(final Context context, final OkListener listener, final boolean oauthOnly) {
-        requestAuthorization(listener, null, oauthOnly, (String) null);
-    }
-
-    public final void requestAuthorization(final Context context, final boolean oauthOnly, final String... scopes) {
-        requestAuthorization(mOkListener, null, oauthOnly, scopes);
-    }
-
     /**
-     * If user has Odnoklassniki application installed, SDK will try to authorize user through it, otherwise, for safety reasons, authorization through browser will be requested.<br>
-     * With oauthOnly flag set to true, the authorization will be requested only through browser.
+     * Starts user authorization
      *
      * @param listener    listener which will be called after authorization
      * @param redirectUri the URI to which the access_token will be redirected
-     * @param oauthOnly   true - use only web authorization, false - use web authorization or authorization via android app if installed
+     * @param authType    selected auth type
      * @param scopes      {@link OkScope} - application request permissions as per {@link OkScope}.
+     * @see OkAuthType
      */
-    public final void requestAuthorization(OkListener listener, String redirectUri, final boolean oauthOnly, final String... scopes) {
+    public final void requestAuthorization(OkListener listener, @Nullable String redirectUri,
+                                           OkAuthType authType, final String... scopes) {
         this.mOkListener = listener;
 
         final Intent intent = new Intent(mContext, OkAuthActivity.class);
         intent.putExtra(Shared.PARAM_CLIENT_ID, mAppId);
         intent.putExtra(Shared.PARAM_APP_KEY, mAppKey);
         intent.putExtra(Shared.PARAM_REDIRECT_URI, redirectUri);
-        intent.putExtra(Shared.PARAM_OAUTH_ONLY, oauthOnly);
+        intent.putExtra(Shared.PARAM_AUTH_TYPE, authType);
         intent.putExtra(Shared.PARAM_SCOPES, scopes);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         mContext.startActivity(intent);
