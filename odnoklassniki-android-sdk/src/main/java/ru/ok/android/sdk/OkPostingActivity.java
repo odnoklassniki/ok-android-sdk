@@ -1,7 +1,5 @@
 package ru.ok.android.sdk;
 
-import java.net.URLEncoder;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -9,15 +7,8 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.webkit.WebView;
-import ru.ok.android.sdk.util.OkEncryptUtil;
 
-/**
- * Created by Valery Ozhiganov
- */
 public class OkPostingActivity extends AbstractWidgetActivity {
-
-    private String mAttachment;
-    private boolean mUserTextEnable;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -27,8 +18,8 @@ public class OkPostingActivity extends AbstractWidgetActivity {
 
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            mAttachment = bundle.getString(Shared.PARAM_ATTACHMENT);
-            mUserTextEnable = bundle.getBoolean(Shared.PARAM_USER_TEXT_ENABLE, false);
+            args.put("st.attachment", bundle.getString(Shared.PARAM_ATTACHMENT));
+            args.put("st.utext", bundle.getBoolean(Shared.PARAM_USER_TEXT_ENABLE, false) ? "on" : "off");
         }
 
         loadPage();
@@ -46,12 +37,7 @@ public class OkPostingActivity extends AbstractWidgetActivity {
     }
 
     private void loadPage() {
-        String signature = OkEncryptUtil.toMD5(String.format("st.attachment=%sst.return=%s%s",
-                mAttachment, getReturnUrl(), mSessionSecretKey));
-
-        String url = getBaseUrl() +
-                String.format("&st.attachment=%s&st.signature=%s&st.popup=on&st.silent=on&st.utext=%s",
-                        URLEncoder.encode(mAttachment), signature, mUserTextEnable ? "on" : "off");
+        String url = prepareUrl(null);
         ((WebView) findViewById(R.id.web_view)).loadUrl(url);
     }
 

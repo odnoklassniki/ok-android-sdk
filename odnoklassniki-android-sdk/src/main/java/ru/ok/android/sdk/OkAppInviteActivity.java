@@ -1,8 +1,6 @@
 package ru.ok.android.sdk;
 
 import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -11,21 +9,12 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.webkit.WebView;
-import ru.ok.android.sdk.util.OkEncryptUtil;
 
 public class OkAppInviteActivity extends AbstractWidgetActivity {
-
-    protected HashMap<String, String> args;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        Bundle bundle = getIntent().getExtras();
-        if (bundle != null) {
-            args = (HashMap<String, String>) bundle.getSerializable(Shared.PARAM_WIDGET_ARGS);
-        }
-
         setContentView(getActivityView());
         prepareWebView();
         loadPage();
@@ -46,27 +35,8 @@ public class OkAppInviteActivity extends AbstractWidgetActivity {
     }
 
     private void loadPage() {
-        TreeMap<String, String> params = new TreeMap<>();
-        if (args != null) {
-            for (Map.Entry<String, String> e : args.entrySet()) {
-                params.put(e.getKey(), e.getValue());
-            }
-        }
-        params.put("st.return", getReturnUrl());
-
-        StringBuilder sigSource = new StringBuilder();
-        StringBuilder url = new StringBuilder(getBaseUrl());
-        for (Map.Entry<String, String> e : params.entrySet()) {
-            if (Shared.WIDGET_SIGNED_ARGS.contains(e.getKey())) {
-                sigSource.append(e.getKey()).append('=').append(e.getValue());
-            }
-            if (!e.getKey().equals("st.return")) {
-                url.append('&').append(e.getKey()).append('=').append(e.getValue());
-            }
-        }
-        String signature = OkEncryptUtil.toMD5(sigSource + mSessionSecretKey);
-        url.append("&st.popup=on&st.silent=on").append("&st.signature=").append(signature);
-        ((WebView) findViewById(R.id.web_view)).loadUrl(url.toString());
+        String url = prepareUrl(null);
+        ((WebView) findViewById(R.id.web_view)).loadUrl(url);
     }
 
     @Override

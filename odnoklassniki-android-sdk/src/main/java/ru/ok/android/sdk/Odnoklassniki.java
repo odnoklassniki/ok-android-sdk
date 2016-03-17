@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
@@ -355,15 +356,19 @@ public class Odnoklassniki {
      *
      * @param attachment      - json with publishing attachment
      * @param userTextEnabled - ability to enable user comment
+     * @param args     widget arguments as specified in documentation
      * @param postingListener - listener which will be called after method call
      */
-    public void performPosting(String attachment, boolean userTextEnabled, OkListener postingListener) {
+    public void performPosting(String attachment, boolean userTextEnabled,
+                               @Nullable HashMap<String, String> args,
+                               OkListener postingListener) {
         this.mOkListener = postingListener;
 
         Intent intent = new Intent(mContext, OkPostingActivity.class);
         intent.putExtra(Shared.PARAM_APP_ID, mAppId);
         intent.putExtra(Shared.PARAM_ATTACHMENT, attachment);
         intent.putExtra(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
+        intent.putExtra(Shared.PARAM_WIDGET_ARGS, args);
         intent.putExtra(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey);
         intent.putExtra(Shared.PARAM_USER_TEXT_ENABLE, userTextEnabled);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
