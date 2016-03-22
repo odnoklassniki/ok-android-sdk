@@ -2,6 +2,7 @@ package ru.ok.android.sdk;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -200,7 +201,9 @@ public class Odnoklassniki {
      * @param httpMethod - only "get" and "post" are supported.
      * @return query result
      * @throws IOException in case of a problem or the connection was aborted.
+     * @see #request(String, Map, EnumSet)
      */
+    @Deprecated
     public final String request(final String apiMethod, final String httpMethod) throws IOException {
         return request(apiMethod, null, httpMethod);
     }
@@ -215,7 +218,9 @@ public class Odnoklassniki {
      * @param httpMethod - only "get" and "post" are supported.
      * @return query result
      * @throws IOException
+     * @see #request(String, Map, EnumSet)
      */
+    @Deprecated
     public final String request(final String apiMethod, final Map<String, String> params, final String httpMethod)
             throws IOException {
         if (TextUtils.isEmpty(apiMethod)) {
@@ -240,15 +245,61 @@ public class Odnoklassniki {
     }
 
     /**
+     * Performs a REST API request and gets result as a string<br/>
+     * <br/>
+     * Note that a method is synchronous so should not be called from UI thread<br/>
+     *
+     * @param method    REST method
+     * @param params    request params
+     * @param mode      request mode
+     * @return query result
+     * @throws IOException
+     * @see OkRequestMode#DEFAULT OkRequestMode.DEFAULT default request mode
+     */
+    public final String request(String method,
+                                @Nullable Map<String, String> params,
+                                @Nullable EnumSet<OkRequestMode> mode)
+            throws IOException {
+
+        if (TextUtils.isEmpty(method)) {
+            throw new IllegalArgumentException(mContext.getString(R.string.api_method_cant_be_empty));
+        }
+        if (mode == null) {
+            mode = OkRequestMode.DEFAULT;
+        }
+        Map<String, String> requestParams = new TreeMap<>();
+        if ((params != null) && !params.isEmpty()) {
+            requestParams.putAll(params);
+        }
+        requestParams.put(Shared.PARAM_APP_KEY, mAppKey);
+        requestParams.put(Shared.PARAM_METHOD, method);
+        if (mode.contains(OkRequestMode.SIGNED)) {
+            signParameters(requestParams);
+            requestParams.put(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
+        }
+        final String requestUrl = Shared.API_URL;
+        String response;
+        if (mode.contains(OkRequestMode.POST)) {
+            response = OkNetUtil.performPostRequest(mHttpClient, requestUrl, requestParams);
+        } else {
+            response = OkNetUtil.performGetRequest(mHttpClient, requestUrl, requestParams);
+        }
+        return response;
+    }
+
+    /**
      * Call an API method and get the result as a String.
      * <p/>
-     * <b>Note that those calls MUST be performed in a non-UI thread.</b>
+     * Note, that those calls <b>MUST be performed in a non-UI thread</b>.<br/>
+     * Note, that if an api method does not return JSONObject but might return array or just a value,
+     * this method should not be used. Thus it is preferable to use #request(String, Map, EnumSet) instead
      *
      * @param apiMethod  - odnoklassniki api method.
      * @param params     - map of key-value params
      * @param httpMethod - only "get" and "post" are supported.
      * @param listener   - listener which will be called after method call
      * @throws IOException
+     * @see #request(String, Map, EnumSet)
      */
     public final void request(final String apiMethod, final Map<String, String> params,
                               final String httpMethod, OkListener listener) throws IOException {
