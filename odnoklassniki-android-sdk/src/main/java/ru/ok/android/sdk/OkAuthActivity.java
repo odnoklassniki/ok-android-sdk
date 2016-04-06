@@ -147,10 +147,11 @@ public class OkAuthActivity extends Activity {
                 final String accessToken = data.getStringExtra(Shared.PARAM_ACCESS_TOKEN);
                 final String sessionSecretKey = data.getStringExtra(Shared.PARAM_SESSION_SECRET_KEY);
                 final String refreshToken = data.getStringExtra(Shared.PARAM_REFRESH_TOKEN);
+                long expiresIn = data.getLongExtra(Shared.PARAM_EXPIRES_IN, 0);
 
                 if (accessToken != null) {
                     error = false;
-                    onSuccess(accessToken, sessionSecretKey != null ? sessionSecretKey : refreshToken);
+                    onSuccess(accessToken, sessionSecretKey != null ? sessionSecretKey : refreshToken, expiresIn);
                 }
             }
             if (error) {
@@ -169,11 +170,14 @@ public class OkAuthActivity extends Activity {
         finish();
     }
 
-    protected final void onSuccess(final String accessToken, final String sessionSecretKey) {
+    protected final void onSuccess(final String accessToken, final String sessionSecretKey, long expiresIn) {
         TokenStore.store(this, accessToken, sessionSecretKey);
         final Bundle bundle = new Bundle();
         bundle.putString(Shared.PARAM_ACCESS_TOKEN, accessToken);
         bundle.putString(Shared.PARAM_SESSION_SECRET_KEY, sessionSecretKey);
+        if (expiresIn > 0) {
+            bundle.putLong(Shared.PARAM_EXPIRES_IN, expiresIn);
+        }
         sendBundle(bundle);
         finish();
     }
@@ -219,6 +223,7 @@ public class OkAuthActivity extends Activity {
                 Uri uri = Uri.parse(url);
                 String fragment = uri.getFragment();
                 String accessToken = null, sessionSecretKey = null, error = null;
+                long expiresIn = 0;
                 for (String property : fragment.split("&")) {
                     String[] splitted = property.split("=");
                     if (splitted.length == 2) {
@@ -234,11 +239,14 @@ public class OkAuthActivity extends Activity {
                             case Shared.PARAM_ERROR:
                                 error = value;
                                 break;
+                            case Shared.PARAM_EXPIRES_IN:
+                                expiresIn = value.isEmpty() ? 0 : Long.parseLong(value);
+                                break;
                         }
                     }
                 }
                 if (accessToken != null) {
-                    onSuccess(accessToken, sessionSecretKey);
+                    onSuccess(accessToken, sessionSecretKey, expiresIn);
                 } else {
                     onFail(error);
                 }

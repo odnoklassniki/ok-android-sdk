@@ -24,6 +24,7 @@ final class Shared {
     static final String PARAM_AUTH_TYPE = "auth_type";
     static final String PARAM_REDIRECT_URI = "redirect_uri";
     static final String PARAM_REFRESH_TOKEN = "refresh_token";
+    static final String PARAM_EXPIRES_IN = "expires_in";
     static final String PARAM_SCOPES = "scopes";
     static final String PARAM_SESSION_SECRET_KEY = "session_secret_key";
     static final String PARAM_SIGN = "sig";
