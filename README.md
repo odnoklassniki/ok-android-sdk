@@ -12,6 +12,7 @@ An application registered within OK platform should have:
 3. Client OAUTH checkbox checked
 4. A VALUABLE_ACCESS permission being checked or requested
 5. (recommended) LONG_ACCESS_TOKEN permission requested from [api-support](mailto:api-support@ok.ru) in order to be able to use tokens with long ttl
+6. A redirect url configured in application settings including okauth://ok12345 where 12345 is your application id on OK platform
 
 
 Quick Start
