@@ -213,7 +213,7 @@ public class MainActivity extends Activity {
                 int result;
                 try {
                     result = Integer.parseInt(odnoklassniki.request("sdk.getInstallSource", args, EnumSet.of(OkRequestMode.GET, OkRequestMode.UNSIGNED)));
-                } catch (IOException e) {
+                } catch (IOException|NumberFormatException e) {
                     result = -1;
                 }
                 return result;

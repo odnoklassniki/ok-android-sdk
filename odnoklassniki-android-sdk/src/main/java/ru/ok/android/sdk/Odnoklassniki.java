@@ -236,6 +236,7 @@ public class Odnoklassniki {
         }
         requestParams.put(Shared.PARAM_APP_KEY, mAppKey);
         requestParams.put(Shared.PARAM_METHOD, apiMethod);
+        requestParams.put(Shared.PARAM_PLATFORM, Shared.APP_PLATFORM);
         signParameters(requestParams);
         requestParams.put(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
         final String requestUrl = Shared.API_URL;
@@ -277,6 +278,7 @@ public class Odnoklassniki {
         }
         requestParams.put(Shared.PARAM_APP_KEY, mAppKey);
         requestParams.put(Shared.PARAM_METHOD, method);
+        requestParams.put(Shared.PARAM_PLATFORM, Shared.APP_PLATFORM);
         if (mode.contains(OkRequestMode.SIGNED)) {
             signParameters(requestParams);
             requestParams.put(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
