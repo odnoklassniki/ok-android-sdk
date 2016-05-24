@@ -1,3 +1,5 @@
+Join our chat on the app: Telegram Messenger, https://telegram.me/joinchat/AAK8BAdKmiij41ce8IT33w 
+
 ok-android-sdk
 -------
 Android SDK and sample for native apps integrated with OK.RU
