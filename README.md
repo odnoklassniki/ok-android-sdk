@@ -22,3 +22,8 @@ Quick Start
 A quick-start with login and viral widgets is available in [example](https://github.com/odnoklassniki/ok-android-sdk/tree/master/odnoklassniki-android-sdk-example)
 
 Note that you should also register a schema okauth://ok23346346 within your [manifest](https://github.com/odnoklassniki/ok-android-sdk/blob/master/odnoklassniki-android-sdk-example/src/main/AndroidManifest.xml#L39) where 23346346 is application id in order to native sso login to work properly.
+
+FAQ
+-------
++ Method sdk.getInstallSource does not return correct value.
+  - Probably you have not bundled your application with *com.google.android.gms:play-services-ads* library that is required to get advertising id that is used to track application installation.
