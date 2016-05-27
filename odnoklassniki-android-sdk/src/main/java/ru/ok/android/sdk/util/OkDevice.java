@@ -9,6 +9,8 @@ import android.util.Log;
 
 public class OkDevice {
 
+    private static final boolean FALLBACK_TO_ANDROID_ID = false;
+
     /**
      * Retrieves unique device advertising id (if applicable), or device id (as a fallback)<br/>
      * Required for some methods like sdk.getInstallSource<br/>
@@ -31,7 +33,11 @@ public class OkDevice {
             Method getId = advertisingIdInfo.getClass().getMethod("getId");
             advId = (String) getId.invoke(advertisingIdInfo);
         } catch (ClassNotFoundException e) {
-            Log.d("Odnoklassniki", "A dependency on com.google.android.gms:play-services-ads is required in order to use OkDevice.getAdvertisingId, falling back to ANDROID_ID instead");
+            if (FALLBACK_TO_ANDROID_ID) {
+                Log.d("Odnoklassniki", "A dependency on com.google.android.gms:play-services-ads is required in order to use OkDevice.getAdvertisingId, falling back to ANDROID_ID instead");
+            } else {
+                throw new IllegalStateException("A dependency on com.google.android.gms:play-services-ads is required in order to use OkDevice.getAdvertisingId");
+            }
         } catch (NoSuchMethodException ignore) {
         } catch (InvocationTargetException ignore) {
         } catch (IllegalAccessException ignore) {
