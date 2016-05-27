@@ -2,9 +2,6 @@ buildscript {
     repositories {
         mavenCentral()
     }
-    dependencies {
-        classpath "com.android.tools.build:gradle:${rootProject.property("android.gradle.plugin.version")}"
-    }
 }
 
 allprojects {

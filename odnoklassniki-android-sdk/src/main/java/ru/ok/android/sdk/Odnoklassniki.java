@@ -1,12 +1,15 @@
 package ru.ok.android.sdk;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.text.TextUtils;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ClientConnectionManager;
@@ -20,15 +23,14 @@ import org.apache.http.params.HttpParams;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.annotation.TargetApi;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Build;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.text.TextUtils;
-import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+
 import ru.ok.android.sdk.util.OkAuthType;
 import ru.ok.android.sdk.util.OkEncryptUtil;
 import ru.ok.android.sdk.util.OkNetUtil;
@@ -37,7 +39,6 @@ import ru.ok.android.sdk.util.OkThreadUtil;
 
 public class Odnoklassniki {
     private static Odnoklassniki sOdnoklassniki;
-
 
     /**
      * @deprecated use {@link #createInstance(android.content.Context, String, String)} instead.
@@ -124,18 +125,17 @@ public class Odnoklassniki {
      * @param scopes      {@link OkScope} - application request permissions as per {@link OkScope}.
      * @see OkAuthType
      */
-    public final void requestAuthorization(OkListener listener, @Nullable String redirectUri,
+    public final void requestAuthorization(Activity activity, OkListener listener, @Nullable String redirectUri,
                                            OkAuthType authType, final String... scopes) {
         this.mOkListener = listener;
 
-        final Intent intent = new Intent(mContext, OkAuthActivity.class);
+        final Intent intent = new Intent(activity, OkAuthActivity.class);
         intent.putExtra(Shared.PARAM_CLIENT_ID, mAppId);
         intent.putExtra(Shared.PARAM_APP_KEY, mAppKey);
         intent.putExtra(Shared.PARAM_REDIRECT_URI, redirectUri);
         intent.putExtra(Shared.PARAM_AUTH_TYPE, authType);
         intent.putExtra(Shared.PARAM_SCOPES, scopes);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        mContext.startActivity(intent);
+        activity.startActivityForResult(intent, OkAuthActivity.OK_AUTH_REQUEST_CODE);
     }
 
     void onTokenResponseReceived(final Bundle result) {
@@ -375,6 +375,7 @@ public class Odnoklassniki {
                         try {
                             json.put(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
                             json.put(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey);
+                            json.put(Shared.PARAM_LOGGED_IN_USER, response);
                         } catch (JSONException ignore) {
                         }
                         notifySuccess(listener, json);
@@ -404,20 +405,19 @@ public class Odnoklassniki {
      * @param args     widget arguments as specified in documentation
      * @param postingListener - listener which will be called after method call
      */
-    public void performPosting(String attachment, boolean userTextEnabled,
+    public void performPosting(Activity activity, String attachment, boolean userTextEnabled,
                                @Nullable HashMap<String, String> args,
                                OkListener postingListener) {
         this.mOkListener = postingListener;
 
-        Intent intent = new Intent(mContext, OkPostingActivity.class);
+        Intent intent = new Intent(activity, OkPostingActivity.class);
         intent.putExtra(Shared.PARAM_APP_ID, mAppId);
         intent.putExtra(Shared.PARAM_ATTACHMENT, attachment);
         intent.putExtra(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
         intent.putExtra(Shared.PARAM_WIDGET_ARGS, args);
         intent.putExtra(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey);
         intent.putExtra(Shared.PARAM_USER_TEXT_ENABLE, userTextEnabled);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        mContext.startActivity(intent);
+        activity.startActivityForResult(intent, OkAuthActivity.OK_AUTH_REQUEST_CODE);
     }
 
     /**
@@ -426,8 +426,8 @@ public class Odnoklassniki {
      * @param listener callback notification listener
      * @param args     widget arguments as specified in documentation
      */
-    public void performAppInvite(OkListener listener, HashMap<String, String> args) {
-        performAppSuggestInvite(listener, OkAppInviteActivity.class, args);
+    public void performAppInvite(Activity activity, OkListener listener, HashMap<String, String> args) {
+        performAppSuggestInvite(activity, listener, OkAppInviteActivity.class, args);
     }
 
     /**
@@ -436,20 +436,19 @@ public class Odnoklassniki {
      * @param listener callback notification listener
      * @param args     widget arguments as specified in documentation
      */
-    public void performAppSuggest(OkListener listener, HashMap<String, String> args) {
-        performAppSuggestInvite(listener, OkAppSuggestActivity.class, args);
+    public void performAppSuggest(Activity activity, OkListener listener, HashMap<String, String> args) {
+        performAppSuggestInvite(activity, listener, OkAppSuggestActivity.class, args);
     }
 
-    private void performAppSuggestInvite(OkListener listener, Class<? extends AbstractWidgetActivity> clazz,
+    private void performAppSuggestInvite(Activity activity, OkListener listener, Class<? extends AbstractWidgetActivity> clazz,
                                          HashMap<String, String> args) {
         this.mOkListener = listener;
-        Intent intent = new Intent(mContext, clazz);
+        Intent intent = new Intent(activity, clazz);
         intent.putExtra(Shared.PARAM_APP_ID, mAppId);
         intent.putExtra(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
         intent.putExtra(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey);
         intent.putExtra(Shared.PARAM_WIDGET_ARGS, args);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        mContext.startActivity(intent);
+        activity.startActivityForResult(intent, OkAuthActivity.OK_AUTH_REQUEST_CODE);
     }
 
     private void signParameters(final Map<String, String> params) {

@@ -18,11 +18,13 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
-import ru.ok.android.sdk.util.OkAuthType;
 
 import java.net.URLEncoder;
 
+import ru.ok.android.sdk.util.OkAuthType;
+
 public class OkAuthActivity extends Activity {
+    public static final int OK_AUTH_REQUEST_CODE = 22890;
     private static final int SSO_ACTIVITY_REQUEST_CODE = 31337;
     private static final String DEFAULT_SECRET_KEY = "6C6B6397C2BCE5EDB7290039";
     private static final String DEFAULT_REDIRECT_URI = "okauth://auth";
