@@ -34,6 +34,7 @@ public final class Shared {
     public static final String PARAM_WIDGET_ARGS = "widget_args";
     public static final String PARAM_PLATFORM = "platform";
     public static final String PARAM_LOGGED_IN_USER = "logged_in_user";
+    public static final String PARAM_RESULT = "result";
 
     // Api
     public static final String API_URL = REMOTE_API + "fb.do";

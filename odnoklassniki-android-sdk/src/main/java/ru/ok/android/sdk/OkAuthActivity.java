@@ -25,6 +25,7 @@ import ru.ok.android.sdk.util.OkAuthType;
 
 public class OkAuthActivity extends Activity {
     public static final int OK_AUTH_REQUEST_CODE = 22890;
+    public static final int RESULT_FAILED = 2;
     private static final int SSO_ACTIVITY_REQUEST_CODE = 31337;
     private static final String DEFAULT_SECRET_KEY = "6C6B6397C2BCE5EDB7290039";
     private static final String DEFAULT_REDIRECT_URI = "okauth://auth";
@@ -166,28 +167,22 @@ public class OkAuthActivity extends Activity {
     }
 
     protected final void onFail(final String error) {
-        Bundle bundle = new Bundle();
-        bundle.putString(Shared.PARAM_ERROR, error);
-        sendBundle(bundle);
+        Intent result = new Intent();
+        result.putExtra(Shared.PARAM_ERROR, error);
+        setResult(RESULT_FAILED, result);
         finish();
     }
 
     protected final void onSuccess(final String accessToken, final String sessionSecretKey, long expiresIn) {
         TokenStore.store(this, accessToken, sessionSecretKey);
-        final Bundle bundle = new Bundle();
-        bundle.putString(Shared.PARAM_ACCESS_TOKEN, accessToken);
-        bundle.putString(Shared.PARAM_SESSION_SECRET_KEY, sessionSecretKey);
+        Intent result = new Intent();
+        result.putExtra(Shared.PARAM_ACCESS_TOKEN, accessToken);
+        result.putExtra(Shared.PARAM_SESSION_SECRET_KEY, sessionSecretKey);
         if (expiresIn > 0) {
-            bundle.putLong(Shared.PARAM_EXPIRES_IN, expiresIn);
+            result.putExtra(Shared.PARAM_EXPIRES_IN, expiresIn);
         }
-        sendBundle(bundle);
+        setResult(Activity.RESULT_OK, result);
         finish();
-    }
-
-    private void sendBundle(final Bundle bundle) {
-        if (Odnoklassniki.hasInstance()) {
-            Odnoklassniki.getInstance().onTokenResponseReceived(bundle);
-        }
     }
 
     private boolean hasAppInfo() {

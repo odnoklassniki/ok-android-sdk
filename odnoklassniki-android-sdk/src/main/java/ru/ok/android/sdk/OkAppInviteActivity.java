@@ -1,16 +1,18 @@
 package ru.ok.android.sdk;
 
-import java.util.HashMap;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.webkit.WebView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.os.Bundle;
-import android.webkit.WebView;
-
 public class OkAppInviteActivity extends AbstractWidgetActivity {
+
+    public static final int OK_INVITING_REQUEST_CODE = 22892;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,19 +49,21 @@ public class OkAppInviteActivity extends AbstractWidgetActivity {
     @Override
     protected void processResult(String result) {
         Odnoklassniki odnoklassniki = Odnoklassniki.getInstance();
+        Intent resultIntent = new Intent();
         if (odnoklassniki != null) {
             try {
                 JSONObject json = new JSONObject(result);
                 String code = json.optString(Shared.PARAM_CODE);
                 if ("ok".equalsIgnoreCase(code)) {
-                    odnoklassniki.notifySuccess(json);
+                    resultIntent.putExtra(Shared.PARAM_RESULT, json.toString());
                 } else {
-                    odnoklassniki.notifyFailed(json.getString(Shared.PARAM_MESSAGE));
+                    resultIntent.putExtra(Shared.PARAM_ERROR, json.getString(Shared.PARAM_MESSAGE));
                 }
             } catch (JSONException e) {
-                odnoklassniki.notifyFailed(result);
+                resultIntent.putExtra(Shared.PARAM_ERROR, result);
             }
         }
+        setResult(Activity.RESULT_OK, resultIntent);
         finish();
     }
 
