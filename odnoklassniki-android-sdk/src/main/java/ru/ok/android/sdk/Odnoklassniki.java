@@ -132,7 +132,7 @@ public class Odnoklassniki {
     }
 
     public boolean onAuthActivityResult(int requestCode, int resultCode, @Nullable Intent result, OkListener okListener) {
-        if (requestCode != OkAuthActivity.OK_AUTH_REQUEST_CODE && requestCode != Activity.RESULT_CANCELED) {
+        if (requestCode != OkAuthActivity.OK_AUTH_REQUEST_CODE || resultCode == Activity.RESULT_CANCELED || requestCode == OkAuthActivity.RESULT_FAILED) {
             return false;
         }
         if (result == null) {
