@@ -127,11 +127,15 @@ public class Odnoklassniki {
         intent.putExtra(Shared.PARAM_REDIRECT_URI, redirectUri);
         intent.putExtra(Shared.PARAM_AUTH_TYPE, authType);
         intent.putExtra(Shared.PARAM_SCOPES, scopes);
-        activity.startActivityForResult(intent, OkAuthActivity.OK_AUTH_REQUEST_CODE);
+        activity.startActivityForResult(intent, Shared.OK_AUTH_REQUEST_CODE);
+    }
+
+    public boolean isActivityRequestOAuth(int requestCode) {
+        return requestCode == Shared.OK_AUTH_REQUEST_CODE;
     }
 
     public boolean onAuthActivityResult(int request, int result, @Nullable Intent intent, OkListener listener) {
-        if (request == OkAuthActivity.OK_AUTH_REQUEST_CODE) {
+        if (isActivityRequestOAuth(request)) {
 
             if (intent == null) {
                 JSONObject json = new JSONObject();
@@ -169,10 +173,24 @@ public class Odnoklassniki {
         return false;
     }
 
+    public boolean isActivityRequestPost(int requestCode) {
+        return requestCode == Shared.OK_POSTING_REQUEST_CODE;
+    }
+
+    public boolean isActivityRequestInvite(int requestCode) {
+        return requestCode == Shared.OK_INVITING_REQUEST_CODE;
+    }
+
+    public boolean isActivityRequestSuggest(int requestCode) {
+        return requestCode == Shared.OK_SUGGESTING_REQUEST_CODE;
+    }
+
+    public boolean isActivityRequestViral(int request) {
+        return isActivityRequestPost(request) || isActivityRequestInvite(request) || isActivityRequestSuggest(request);
+    }
+
     public boolean onActivityResultResult(int request, int result, @Nullable Intent intent, OkListener listener) {
-        if (request == OkPostingActivity.OK_POSTING_REQUEST_CODE ||
-                request == OkAppInviteActivity.OK_INVITING_REQUEST_CODE ||
-                request == OkAppSuggestActivity.OK_SUGGESTING_REQUEST_CODE) {
+        if (isActivityRequestViral(request)) {
 
             if (intent == null) {
                 JSONObject json = new JSONObject();
@@ -437,7 +455,7 @@ public class Odnoklassniki {
         intent.putExtra(Shared.PARAM_WIDGET_ARGS, args);
         intent.putExtra(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey);
         intent.putExtra(Shared.PARAM_USER_TEXT_ENABLE, userTextEnabled);
-        activity.startActivityForResult(intent, OkPostingActivity.OK_POSTING_REQUEST_CODE);
+        activity.startActivityForResult(intent, Shared.OK_POSTING_REQUEST_CODE);
     }
 
     /**
@@ -446,7 +464,7 @@ public class Odnoklassniki {
      * @param args widget arguments as specified in documentation
      */
     public void performAppInvite(Activity activity, HashMap<String, String> args) {
-        performAppSuggestInvite(activity, OkAppInviteActivity.class, args, OkAppInviteActivity.OK_INVITING_REQUEST_CODE);
+        performAppSuggestInvite(activity, OkAppInviteActivity.class, args, Shared.OK_INVITING_REQUEST_CODE);
     }
 
     /**
@@ -455,7 +473,7 @@ public class Odnoklassniki {
      * @param args widget arguments as specified in documentation
      */
     public void performAppSuggest(Activity activity, HashMap<String, String> args) {
-        performAppSuggestInvite(activity, OkAppSuggestActivity.class, args, OkAppSuggestActivity.OK_SUGGESTING_REQUEST_CODE);
+        performAppSuggestInvite(activity, OkAppSuggestActivity.class, args, Shared.OK_SUGGESTING_REQUEST_CODE);
     }
 
     private void performAppSuggestInvite(Activity activity, Class<? extends AbstractWidgetActivity> clazz,

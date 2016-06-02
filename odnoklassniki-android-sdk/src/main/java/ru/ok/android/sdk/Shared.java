@@ -50,4 +50,11 @@ public interface Shared {
      */
     List<String> WIDGET_SIGNED_ARGS =
             Arrays.asList("st.attachment", "st.return", "st.redirect_uri", "st.state");
+
+    // android activity request codes
+
+    int OK_AUTH_REQUEST_CODE = 22890;
+    int OK_POSTING_REQUEST_CODE = 22891;
+    int OK_INVITING_REQUEST_CODE = 22892;
+    int OK_SUGGESTING_REQUEST_CODE = 22893;
 }

@@ -12,8 +12,6 @@ import org.json.JSONObject;
 
 public class OkAppInviteActivity extends AbstractWidgetActivity {
 
-    public static final int OK_INVITING_REQUEST_CODE = 22892;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -24,7 +24,6 @@ import java.net.URLEncoder;
 import ru.ok.android.sdk.util.OkAuthType;
 
 public class OkAuthActivity extends Activity {
-    public static final int OK_AUTH_REQUEST_CODE = 22890;
     public static final int RESULT_FAILED = 2;
     private static final int SSO_ACTIVITY_REQUEST_CODE = 31337;
     private static final String DEFAULT_SECRET_KEY = "6C6B6397C2BCE5EDB7290039";

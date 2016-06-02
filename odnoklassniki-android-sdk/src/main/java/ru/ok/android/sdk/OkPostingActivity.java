@@ -12,9 +12,6 @@ import org.json.JSONObject;
 
 public class OkPostingActivity extends AbstractWidgetActivity {
 
-
-    public static final int OK_POSTING_REQUEST_CODE = 22891;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

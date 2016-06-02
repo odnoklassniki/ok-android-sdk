@@ -106,10 +106,10 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (Odnoklassniki.getInstance().onAuthActivityResult(requestCode, resultCode, data, getAuthListener())) {
-            // authorization finished
-        } else if (Odnoklassniki.getInstance().onActivityResultResult(requestCode, resultCode, data, getToastListener())) {
-            //
+        if (Odnoklassniki.getInstance().isActivityRequestOAuth(requestCode)) {
+            Odnoklassniki.getInstance().onAuthActivityResult(requestCode, resultCode, data, getAuthListener());
+        } else if (Odnoklassniki.getInstance().isActivityRequestViral(requestCode)) {
+            Odnoklassniki.getInstance().onActivityResultResult(requestCode, resultCode, data, getToastListener());
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
