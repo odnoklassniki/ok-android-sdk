@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -68,35 +69,24 @@ public class MainActivity extends Activity {
             }
         });
 
-        final OkListener toasterListener = new OkListener() {
-            @Override
-            public void onSuccess(final JSONObject json) {
-                Toast.makeText(MainActivity.this, json.toString(), Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onError(String error) {
-                Toast.makeText(MainActivity.this, String.format("%s: %s", getString(R.string.error), error), Toast.LENGTH_LONG).show();
-            }
-        };
-
         findViewById(R.id.sdk_post).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                odnoklassniki.performPosting("{\"media\":[{\"type\":\"text\",\"text\":\"hello world!\"}]}",
-                        false, null, toasterListener);
+                odnoklassniki.performPosting(MainActivity.this,
+                        "{\"media\":[{\"type\":\"text\",\"text\":\"hello world!\"}]}",
+                        false, null);
             }
         });
         findViewById(R.id.sdk_app_invite).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                odnoklassniki.performAppInvite(toasterListener, null);
+                odnoklassniki.performAppInvite(MainActivity.this, null);
             }
         });
         findViewById(R.id.sdk_app_suggest).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                odnoklassniki.performAppSuggest(toasterListener, null);
+                odnoklassniki.performAppSuggest(MainActivity.this, null);
             }
         });
 
@@ -112,6 +102,62 @@ public class MainActivity extends Activity {
                 Toast.makeText(MainActivity.this, String.format("%s: %s", getString(R.string.error), error), Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (Odnoklassniki.getInstance().onAuthActivityResult(requestCode, resultCode, data, getAuthListener())) {
+            // authorization finished
+        } else if (Odnoklassniki.getInstance().onActivityResultResult(requestCode, resultCode, data, getToastListener())) {
+            //
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    /**
+     * Creates a listener that displays result as a toast message
+     */
+    @NonNull
+    private OkListener getToastListener() {
+        return new OkListener() {
+            @Override
+            public void onSuccess(final JSONObject json) {
+                Toast.makeText(MainActivity.this, json.toString(), Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(MainActivity.this, String.format("%s: %s", getString(R.string.error), error), Toast.LENGTH_LONG).show();
+            }
+        };
+    }
+
+    /**
+     * Creates a listener that is run on OAUTH authorization completion
+     */
+    @NonNull
+    private OkListener getAuthListener() {
+        return new OkListener() {
+            @Override
+            public void onSuccess(final JSONObject json) {
+                try {
+                    Toast.makeText(MainActivity.this,
+                            String.format("access_token: %s", json.getString("access_token")),
+                            Toast.LENGTH_SHORT).show();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                showForm();
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(MainActivity.this,
+                        String.format("%s: %s", getString(R.string.error), error),
+                        Toast.LENGTH_SHORT).show();
+            }
+        };
     }
 
     protected final void showForm() {
@@ -176,31 +222,7 @@ public class MainActivity extends Activity {
 
         @Override
         public void onClick(final View view) {
-            odnoklassniki.requestAuthorization(prepareOkListener(), REDIRECT_URL, authType, OkScope.VALUABLE_ACCESS);
-        }
-
-        @NonNull
-        private OkListener prepareOkListener() {
-            return new OkListener() {
-                @Override
-                public void onSuccess(final JSONObject json) {
-                    try {
-                        Toast.makeText(MainActivity.this,
-                                String.format("access_token: %s", json.getString("access_token")),
-                                Toast.LENGTH_SHORT).show();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                    showForm();
-                }
-
-                @Override
-                public void onError(String error) {
-                    Toast.makeText(MainActivity.this,
-                            String.format("%s: %s", getString(R.string.error), error),
-                            Toast.LENGTH_SHORT).show();
-                }
-            };
+            odnoklassniki.requestAuthorization(MainActivity.this, REDIRECT_URL, authType, OkScope.VALUABLE_ACCESS);
         }
     }
 
@@ -213,7 +235,7 @@ public class MainActivity extends Activity {
                 int result;
                 try {
                     result = Integer.parseInt(odnoklassniki.request("sdk.getInstallSource", args, EnumSet.of(OkRequestMode.GET, OkRequestMode.UNSIGNED)));
-                } catch (IOException|NumberFormatException e) {
+                } catch (IOException | NumberFormatException e) {
                     result = -1;
                 }
                 return result;

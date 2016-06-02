@@ -1,14 +1,12 @@
 package ru.ok.android.sdk;
 
-import android.annotation.TargetApi;
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Build;
-import android.support.annotation.Nullable;
-import android.text.TextUtils;
-import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ClientConnectionManager;
@@ -22,14 +20,15 @@ import org.apache.http.params.HttpParams;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
+import android.support.annotation.Nullable;
+import android.text.TextUtils;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import ru.ok.android.sdk.util.OkAuthType;
 import ru.ok.android.sdk.util.OkEncryptUtil;
 import ru.ok.android.sdk.util.OkNetUtil;
@@ -131,58 +130,72 @@ public class Odnoklassniki {
         activity.startActivityForResult(intent, OkAuthActivity.OK_AUTH_REQUEST_CODE);
     }
 
-    public boolean onAuthActivityResult(int requestCode, int resultCode, @Nullable Intent result, OkListener okListener) {
-        if (requestCode != OkAuthActivity.OK_AUTH_REQUEST_CODE || resultCode == Activity.RESULT_CANCELED || requestCode == OkAuthActivity.RESULT_FAILED) {
-            return false;
-        }
-        if (result == null) {
-            okListener.onError(null);
-        } else {
-            final String accessToken = result.getStringExtra(Shared.PARAM_ACCESS_TOKEN);
-            if (accessToken == null) {
-                String error = result.getStringExtra(Shared.PARAM_ERROR);
-                okListener.onError(error);
-            } else {
-                final String sessionSecretKey = result.getStringExtra(Shared.PARAM_SESSION_SECRET_KEY);
-                final String refreshToken = result.getStringExtra(Shared.PARAM_REFRESH_TOKEN);
-                long expiresIn = result.getLongExtra(Shared.PARAM_EXPIRES_IN, 0);
-                mAccessToken = accessToken;
-                mSessionSecretKey = sessionSecretKey != null ? sessionSecretKey : refreshToken;
+    public boolean onAuthActivityResult(int request, int result, @Nullable Intent intent, OkListener listener) {
+        if (request == OkAuthActivity.OK_AUTH_REQUEST_CODE) {
+
+            if (intent == null) {
                 JSONObject json = new JSONObject();
                 try {
-                    json.put(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
-                    json.put(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey);
-                    if (expiresIn > 0) {
-                        json.put(Shared.PARAM_EXPIRES_IN, expiresIn);
-                    }
+                    json.put(Shared.PARAM_ACTIVITY_RESULT, result);
                 } catch (JSONException ignore) {
                 }
-                okListener.onSuccess(json);
-            }
-        }
-        return true;
-    }
-
-    public boolean onActivityResultResult(int requestCode, int resultCode, @Nullable Intent result, OkListener okListener) {
-        if ((requestCode != OkPostingActivity.OK_POSTING_REQUEST_CODE ||
-                requestCode != OkAppInviteActivity.OK_INVITING_REQUEST_CODE ||
-                requestCode != OkAppSuggestActivity.OK_SUGGESTING_REQUEST_CODE) && requestCode != Activity.RESULT_CANCELED) {
-            return false;
-        }
-        if (result == null) {
-            okListener.onError(null);
-        } else {
-            if (result.hasExtra(Shared.PARAM_ERROR)) {
-                okListener.onError(result.getStringExtra(Shared.PARAM_ERROR));
+                listener.onError(json.toString());
             } else {
-                try {
-                    okListener.onSuccess(new JSONObject(result.getStringExtra(Shared.PARAM_RESULT)));
-                } catch (JSONException e) {
-                    okListener.onError(result.getStringExtra(Shared.PARAM_RESULT));
+                final String accessToken = intent.getStringExtra(Shared.PARAM_ACCESS_TOKEN);
+                if (accessToken == null) {
+                    String error = intent.getStringExtra(Shared.PARAM_ERROR);
+                    listener.onError(error);
+                } else {
+                    final String sessionSecretKey = intent.getStringExtra(Shared.PARAM_SESSION_SECRET_KEY);
+                    final String refreshToken = intent.getStringExtra(Shared.PARAM_REFRESH_TOKEN);
+                    long expiresIn = intent.getLongExtra(Shared.PARAM_EXPIRES_IN, 0);
+                    mAccessToken = accessToken;
+                    mSessionSecretKey = sessionSecretKey != null ? sessionSecretKey : refreshToken;
+                    JSONObject json = new JSONObject();
+                    try {
+                        json.put(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
+                        json.put(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey);
+                        if (expiresIn > 0) {
+                            json.put(Shared.PARAM_EXPIRES_IN, expiresIn);
+                        }
+                    } catch (JSONException ignore) {
+                    }
+                    listener.onSuccess(json);
                 }
             }
+
+            return true;
         }
-        return true;
+        return false;
+    }
+
+    public boolean onActivityResultResult(int request, int result, @Nullable Intent intent, OkListener listener) {
+        if (request == OkPostingActivity.OK_POSTING_REQUEST_CODE ||
+                request == OkAppInviteActivity.OK_INVITING_REQUEST_CODE ||
+                request == OkAppSuggestActivity.OK_SUGGESTING_REQUEST_CODE) {
+
+            if (intent == null) {
+                JSONObject json = new JSONObject();
+                try {
+                    json.put(Shared.PARAM_ACTIVITY_RESULT, result);
+                } catch (JSONException ignore) {
+                }
+                listener.onError(json.toString());
+            } else {
+                if (intent.hasExtra(Shared.PARAM_ERROR)) {
+                    listener.onError(intent.getStringExtra(Shared.PARAM_ERROR));
+                } else {
+                    try {
+                        listener.onSuccess(new JSONObject(intent.getStringExtra(Shared.PARAM_RESULT)));
+                    } catch (JSONException e) {
+                        listener.onError(intent.getStringExtra(Shared.PARAM_RESULT));
+                    }
+                }
+            }
+
+            return true;
+        }
+        return false;
     }
 
     protected final void notifyFailed(final OkListener listener, final String error) {
@@ -265,9 +278,9 @@ public class Odnoklassniki {
      * <br/>
      * Note that a method is synchronous so should not be called from UI thread<br/>
      *
-     * @param method    REST method
-     * @param params    request params
-     * @param mode      request mode
+     * @param method REST method
+     * @param params request params
+     * @param mode   request mode
      * @return query result
      * @throws IOException
      * @see OkRequestMode#DEFAULT OkRequestMode.DEFAULT default request mode
@@ -413,7 +426,7 @@ public class Odnoklassniki {
      *
      * @param attachment      - json with publishing attachment
      * @param userTextEnabled - ability to enable user comment
-     * @param args     widget arguments as specified in documentation
+     * @param args            widget arguments as specified in documentation
      */
     public void performPosting(Activity activity, String attachment, boolean userTextEnabled,
                                @Nullable HashMap<String, String> args) {
@@ -430,7 +443,7 @@ public class Odnoklassniki {
     /**
      * Calls application invite widget
      *
-     * @param args     widget arguments as specified in documentation
+     * @param args widget arguments as specified in documentation
      */
     public void performAppInvite(Activity activity, HashMap<String, String> args) {
         performAppSuggestInvite(activity, OkAppInviteActivity.class, args, OkAppInviteActivity.OK_INVITING_REQUEST_CODE);
@@ -439,7 +452,7 @@ public class Odnoklassniki {
     /**
      * Calls application suggest widget
      *
-     * @param args     widget arguments as specified in documentation
+     * @param args widget arguments as specified in documentation
      */
     public void performAppSuggest(Activity activity, HashMap<String, String> args) {
         performAppSuggestInvite(activity, OkAppSuggestActivity.class, args, OkAppSuggestActivity.OK_SUGGESTING_REQUEST_CODE);
