@@ -5,12 +5,15 @@ dependencies {
 }
 
 android {
-    compileSdkVersion rootProject.property("android.compile.sdk.version") as int
-    buildToolsVersion rootProject.property("android.build.tools.version")
+    compileSdkVersion rootProject.property("COMPILE_SDK_VERSION") as int
+    buildToolsVersion rootProject.property("BUILD_TOOLS_VERSION")
     defaultConfig {
-        minSdkVersion 9
-        targetSdkVersion 21
+        minSdkVersion rootProject.property("MIN_SDK_VERSION")
+        targetSdkVersion rootProject.property("TARGET_SDK_VERSION")
     }
     productFlavors {
+    }
+    dependencies {
+        useLibrary 'org.apache.http.legacy'
     }
 }
