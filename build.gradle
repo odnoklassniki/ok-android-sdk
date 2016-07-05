@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:${rootProject.property("android.gradle.plugin.version")}"
+        classpath 'com.android.tools.build:gradle:2.1.2'
     }
 }
 
