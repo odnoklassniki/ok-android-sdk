@@ -39,14 +39,6 @@ public class Odnoklassniki {
     private static Odnoklassniki sOdnoklassniki;
 
     /**
-     * @deprecated use {@link #createInstance(android.content.Context, String, String)} instead.
-     */
-    @Deprecated
-    public static Odnoklassniki createInstance(final Context context, final String appId, final String appSecret, final String appKey) {
-        return createInstance(context, appId, appKey);
-    }
-
-    /**
      * This method is required to be called before {@link Odnoklassniki#getInstance()}<br>
      * Note that instance is only created once. Multiple calls to this method wont' create multiple instances of the object
      */
@@ -64,10 +56,6 @@ public class Odnoklassniki {
      * Get previously created instance.<br>
      * You must always call {@link Odnoklassniki#createInstance(Context, String, String)} before calling this method, or {@link IllegalStateException} will be thrown
      */
-    public static Odnoklassniki getInstance(Context context) {
-        return getInstance();
-    }
-
     public static Odnoklassniki getInstance() {
         if (sOdnoklassniki == null) {
             throw new IllegalStateException("No instance available. Odnoklassniki.createInstance() needs to be called before Odnoklassniki.getInstance()");
@@ -96,6 +84,7 @@ public class Odnoklassniki {
         // RESTORE
         mAccessToken = TokenStore.getStoredAccessToken(context);
         mSessionSecretKey = TokenStore.getStoredSessionSecretKey(context);
+        sdkToken = TokenStore.getSdkToken(context);
     }
 
     private Context mContext;
@@ -107,6 +96,7 @@ public class Odnoklassniki {
     // Current tokens
     protected String mAccessToken;
     protected String mSessionSecretKey;
+    protected String sdkToken;
 
     // Stuff
     protected final HttpClient mHttpClient;
@@ -236,24 +226,6 @@ public class Odnoklassniki {
         }
     }
 
-	/* **** API REQUESTS *** */
-
-    /**
-     * Call an API method and get the result as a String.
-     * <p/>
-     * <b>Note that those calls MUST be performed in a non-UI thread.</b>
-     *
-     * @param apiMethod  - odnoklassniki api method.
-     * @param httpMethod - only "get" and "post" are supported.
-     * @return query result
-     * @throws IOException in case of a problem or the connection was aborted.
-     * @see #request(String, Map, EnumSet)
-     */
-    @Deprecated
-    public final String request(final String apiMethod, final String httpMethod) throws IOException {
-        return request(apiMethod, null, httpMethod);
-    }
-
     /**
      * Call an API method and get the result as a String.
      * <p/>
@@ -321,6 +293,12 @@ public class Odnoklassniki {
         requestParams.put(Shared.PARAM_APP_KEY, mAppKey);
         requestParams.put(Shared.PARAM_METHOD, method);
         requestParams.put(Shared.PARAM_PLATFORM, Shared.APP_PLATFORM);
+        if (mode.contains(OkRequestMode.SDK_SESSION)) {
+            if (TextUtils.isEmpty(sdkToken)) {
+                throw new IllegalArgumentException("SDK token is required for method call, have not forget to call sdkInit?");
+            }
+            requestParams.put(Shared.PARAM_SDK_TOKEN, sdkToken);
+        }
         if (mode.contains(OkRequestMode.SIGNED)) {
             signParameters(requestParams);
             requestParams.put(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
@@ -410,7 +388,7 @@ public class Odnoklassniki {
             @Override
             public void run() {
                 try {
-                    String response = request("users.getLoggedInUser", "get");
+                    String response = request("users.getLoggedInUser", null, "get");
 
                     if (response != null && response.length() > 2 && TextUtils.isDigitsOnly(response.substring(1, response.length() - 1))) {
                         JSONObject json = new JSONObject();
@@ -496,14 +474,13 @@ public class Odnoklassniki {
         params.put(Shared.PARAM_SIGN, sig);
     }
 
-	/* **** LOGOUT **** */
-
     /**
      * Clears all token information from sdk and webView cookies
      */
     public final void clearTokens() {
         mAccessToken = null;
         mSessionSecretKey = null;
+        sdkToken = null;
         TokenStore.removeStoredTokens(mContext);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

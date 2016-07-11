@@ -70,6 +70,13 @@
             android:text="@string/app_suggest_widget" />
 
         <Button
+            android:id="@+id/sdk_send_note"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/sdk_app_suggest"
+            android:text="@string/call_sdk_send_note" />
+
+        <Button
             android:id="@+id/sdk_logout"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"

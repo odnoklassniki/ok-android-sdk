@@ -19,6 +19,10 @@ public enum OkRequestMode {
      * Request should not be signed
      */
     UNSIGNED,
+    /**
+     * SDK session required
+     */
+    SDK_SESSION,
     //
     ;
 

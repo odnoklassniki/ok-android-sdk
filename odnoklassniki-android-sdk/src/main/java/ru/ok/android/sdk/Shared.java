@@ -35,6 +35,7 @@ public interface Shared {
     String PARAM_PLATFORM = "platform";
     String PARAM_LOGGED_IN_USER = "logged_in_user";
     String PARAM_RESULT = "result";
+    String PARAM_SDK_TOKEN = "sdkToken";
 
     // android-specific params
     String PARAM_ACTIVITY_RESULT = "activity_result";
@@ -57,4 +58,6 @@ public interface Shared {
     int OK_POSTING_REQUEST_CODE = 22891;
     int OK_INVITING_REQUEST_CODE = 22892;
     int OK_SUGGESTING_REQUEST_CODE = 22893;
+
+    String LOG_TAG = "ok_android_sdk";
 }

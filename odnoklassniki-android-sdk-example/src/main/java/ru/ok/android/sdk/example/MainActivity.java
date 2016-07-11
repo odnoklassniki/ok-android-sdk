@@ -17,9 +17,11 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
+import ru.ok.android.sdk.OKRestHelper;
 import ru.ok.android.sdk.Odnoklassniki;
 import ru.ok.android.sdk.OkListener;
 import ru.ok.android.sdk.OkRequestMode;
+import ru.ok.android.sdk.Shared;
 import ru.ok.android.sdk.util.OkAuthType;
 import ru.ok.android.sdk.util.OkDevice;
 import ru.ok.android.sdk.util.OkScope;
@@ -87,6 +89,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 odnoklassniki.performAppSuggest(MainActivity.this, null);
+            }
+        });
+        findViewById(R.id.sdk_send_note).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new SdkSendNote().execute();
             }
         });
 
@@ -250,5 +258,38 @@ public class MainActivity extends Activity {
                         Toast.LENGTH_SHORT).show();
             }
         }.execute();
+    }
+
+    protected final class SdkSendNote extends AsyncTask<Void, Void, String> {
+        @Override
+        protected String doInBackground(final Void... params) {
+            try {
+                OKRestHelper helper = new OKRestHelper(odnoklassniki);
+                if (!helper.sdkInit(MainActivity.this)) {
+                    Toast.makeText(MainActivity.this, "sdk.sendNote: no sdk token available", Toast.LENGTH_SHORT).show();
+                    return null;
+                }
+                JSONObject note = new JSONObject();
+                note.put("uid", "12345678");
+                note.put("image", "http://domain.tld/img.png");
+                note.put("message", "Hello World from Android SDK!");
+                note.put("payload", "SGVsbG8gd29ybGQhISE=");
+                helper.sdkSendNote(note, new OkListener() {
+                    @Override
+                    public void onSuccess(JSONObject json) {
+                        String text = json == null ? null : json.toString();
+                        Toast.makeText(MainActivity.this, "sdk.sendNote: OK " + text, Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Toast.makeText(MainActivity.this, "sdk.sendNote: ERROR " + error, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (Exception e) {
+                Log.e(Shared.LOG_TAG, "sdk.sendNote " + e.getMessage(), e);
+            }
+            return null;
+        }
     }
 }
