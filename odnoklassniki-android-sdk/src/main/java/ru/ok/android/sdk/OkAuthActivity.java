@@ -89,6 +89,9 @@ public class OkAuthActivity extends Activity {
         if ((authType == OkAuthType.NATIVE_SSO) || (authType == OkAuthType.ANY)) {
             if (startSsoAuthorization()) {
                 return;
+            } else if (authType == OkAuthType.NATIVE_SSO) {
+                onFail(getString(R.string.no_ok_application_installed));
+                return;
             }
         }
 
