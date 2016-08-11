@@ -36,6 +36,7 @@ public interface Shared {
     String PARAM_LOGGED_IN_USER = "logged_in_user";
     String PARAM_RESULT = "result";
     String PARAM_SDK_TOKEN = "sdkToken";
+    String PARAM_ALLOW_DEBUG_OK_SSO = "allowDebugOkSso";
 
     // android-specific params
     String PARAM_ACTIVITY_RESULT = "activity_result";

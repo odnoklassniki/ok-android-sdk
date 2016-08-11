@@ -102,6 +102,11 @@ public class Odnoklassniki {
     protected final HttpClient mHttpClient;
 
     /**
+     * Set true if wish to support logging in via OK debug application installed instead of release one
+     */
+    protected boolean allowDebugOkSso;
+
+    /**
      * Starts user authorization
      *
      * @param redirectUri the URI to which the access_token will be redirected
@@ -117,6 +122,7 @@ public class Odnoklassniki {
         intent.putExtra(Shared.PARAM_REDIRECT_URI, redirectUri);
         intent.putExtra(Shared.PARAM_AUTH_TYPE, authType);
         intent.putExtra(Shared.PARAM_SCOPES, scopes);
+        intent.putExtra(Shared.PARAM_ALLOW_DEBUG_OK_SSO, allowDebugOkSso);
         activity.startActivityForResult(intent, Shared.OK_AUTH_REQUEST_CODE);
     }
 

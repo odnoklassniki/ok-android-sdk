@@ -34,6 +34,7 @@ public class OkAuthActivity extends Activity {
     private String mRedirectUri;
     private String[] mScopes;
     private OkAuthType authType;
+    private boolean allowDebugOkSso;
 
     private WebView mWebView;
 
@@ -52,6 +53,7 @@ public class OkAuthActivity extends Activity {
         }
         mScopes = bundle.getStringArray(Shared.PARAM_SCOPES);
         authType = (OkAuthType) bundle.getSerializable(Shared.PARAM_AUTH_TYPE);
+        allowDebugOkSso = bundle.getBoolean(Shared.PARAM_ALLOW_DEBUG_OK_SSO);
         auth();
     }
 
@@ -110,12 +112,19 @@ public class OkAuthActivity extends Activity {
         return url;
     }
 
+    private ResolveInfo resolveOkAppLogin(Intent intent, String aPackage) {
+        intent.setClassName(aPackage, "ru.ok.android.external.LoginExternal");
+        return getPackageManager().resolveActivity(intent, 0);
+    }
+
     /* SSO AUTHORIZATION */
     private boolean startSsoAuthorization() {
         boolean ssoAvailable = false;
         final Intent intent = new Intent();
-        intent.setClassName("ru.ok.android", "ru.ok.android.external.LoginExternal");
-        final ResolveInfo resolveInfo = getPackageManager().resolveActivity(intent, 0);
+        ResolveInfo resolveInfo = resolveOkAppLogin(intent, "ru.ok.android");
+        if (allowDebugOkSso && (resolveInfo == null)) {
+            resolveInfo = resolveOkAppLogin(intent, "ru.ok.android.debug");
+        }
         if (resolveInfo != null) {
             try {
                 final PackageInfo packageInfo = getPackageManager().getPackageInfo(resolveInfo.activityInfo.packageName, PackageManager.GET_SIGNATURES);
