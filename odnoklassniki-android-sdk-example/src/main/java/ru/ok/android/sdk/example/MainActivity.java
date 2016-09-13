@@ -1,6 +1,7 @@
 package ru.ok.android.sdk.example;
 
 import java.io.IOException;
+import java.util.Currency;
 import java.util.EnumSet;
 import java.util.HashMap;
 
@@ -95,6 +96,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 new SdkSendNote().execute();
+            }
+        });
+        findViewById(R.id.sdk_report_payment).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                odnoklassniki.reportPayment(Math.random() + "", "6.28", Currency.getInstance("EUR"));
             }
         });
 

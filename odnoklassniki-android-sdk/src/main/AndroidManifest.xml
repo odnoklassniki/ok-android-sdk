@@ -1,7 +1,5 @@
 <manifest
-    package="ru.ok.android.sdk"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    package="ru.ok.android.sdk">
 
-    <uses-sdk android:minSdkVersion="9"/>
     <application/>
 </manifest>

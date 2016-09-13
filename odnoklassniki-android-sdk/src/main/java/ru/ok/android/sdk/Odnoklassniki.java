@@ -2,6 +2,7 @@ package ru.ok.android.sdk;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Currency;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +33,7 @@ import android.webkit.CookieSyncManager;
 import ru.ok.android.sdk.util.OkAuthType;
 import ru.ok.android.sdk.util.OkEncryptUtil;
 import ru.ok.android.sdk.util.OkNetUtil;
+import ru.ok.android.sdk.util.OkPayment;
 import ru.ok.android.sdk.util.OkScope;
 import ru.ok.android.sdk.util.OkThreadUtil;
 
@@ -80,6 +82,7 @@ public class Odnoklassniki {
         registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
         final ClientConnectionManager cm = new ThreadSafeClientConnManager(params, registry);
         mHttpClient = new DefaultHttpClient(cm, params);
+        okPayment = new OkPayment();
 
         // RESTORE
         mAccessToken = TokenStore.getStoredAccessToken(context);
@@ -100,6 +103,7 @@ public class Odnoklassniki {
 
     // Stuff
     protected final HttpClient mHttpClient;
+    protected final OkPayment okPayment;
 
     /**
      * Set true if wish to support logging in via OK debug application installed instead of release one
@@ -160,6 +164,7 @@ public class Odnoklassniki {
                         }
                     } catch (JSONException ignore) {
                     }
+                    onValidSessionAppeared();
                     listener.onSuccess(json);
                 }
             }
@@ -404,6 +409,7 @@ public class Odnoklassniki {
                             json.put(Shared.PARAM_LOGGED_IN_USER, response);
                         } catch (JSONException ignore) {
                         }
+                        onValidSessionAppeared();
                         notifySuccess(listener, json);
                     } else {
                         try {
@@ -471,7 +477,7 @@ public class Odnoklassniki {
     }
 
     private void signParameters(final Map<String, String> params) {
-        final StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder(100);
         for (final Entry<String, String> entry : params.entrySet()) {
             sb.append(entry.getKey()).append("=").append(entry.getValue());
         }
@@ -506,5 +512,16 @@ public class Odnoklassniki {
         CookieSyncManager.createInstance(mContext);
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.removeAllCookie();
+    }
+
+    /**
+     * Reports a payment and sends (async) via sdk.reportPayment method<br/>
+     */
+    public void reportPayment(String trxId, String amount, Currency currency) {
+        okPayment.report(mContext, trxId, amount, currency);
+    }
+
+    private void onValidSessionAppeared() {
+        okPayment.init(mContext);
     }
 }
