@@ -29,11 +29,14 @@ public class OkPayment {
     private static final String TRX_ID = "id";
     private static final String AMOUNT = "amount";
     private static final String CURRENCY = "currency";
+    private static final String TRIES = "tries";
+    private static final int MAX_RETRY_COUNT = 20;
 
     private class Transaction {
         private String id;
         private String amount;
         private String currency;
+        private int tries;
 
         public Transaction() {
         }
@@ -46,29 +49,33 @@ public class OkPayment {
     }
 
     private final Queue<Transaction> queue = new ConcurrentLinkedQueue<>();
+    private final SharedPreferences prefs;
 
-    public void init(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREF_QUEUE_PACKAGE, Context.MODE_PRIVATE);
+    public OkPayment(Context context) {
+        this.prefs = context.getSharedPreferences(PREF_QUEUE_PACKAGE, Context.MODE_PRIVATE);
+    }
+
+    public void init() {
+        queue.clear();
         queue.addAll(fromJson(prefs.getString(PREF_QUEUE_KEY, null)));
-        transfer(context);
+        transfer();
     }
 
-    public void report(Context context, String trxId, String amount, Currency currency) {
+    public void report(String trxId, String amount, Currency currency) {
         queue.offer(new Transaction(trxId, amount, currency.getCurrencyCode()));
-        persist(context);
-        transfer(context);
+        persist();
+        transfer();
     }
 
-    private void persist(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREF_QUEUE_PACKAGE, Context.MODE_PRIVATE);
+    private void persist() {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(PREF_QUEUE_KEY, toJson());
         editor.apply();
     }
 
-    private void transfer(Context context) {
+    private void transfer() {
         if (!queue.isEmpty()) {
-            new TransferTask().execute(context);
+            new TransferTask().execute();
         }
     }
 
@@ -81,6 +88,9 @@ public class OkPayment {
                 obj.put(TRX_ID, trx.id);
                 obj.put(AMOUNT, trx.amount);
                 obj.put(CURRENCY, trx.currency);
+                if (trx.tries > 0) {
+                    obj.put(TRIES, trx.tries);
+                }
 
                 json.put(obj);
             }
@@ -103,6 +113,7 @@ public class OkPayment {
                     trx.id = obj.getString(TRX_ID);
                     trx.amount = obj.getString(AMOUNT);
                     trx.currency = obj.getString(CURRENCY);
+                    trx.tries = obj.optInt(TRIES);
 
                     transactions.add(trx);
                 }
@@ -113,10 +124,9 @@ public class OkPayment {
         return transactions;
     }
 
-    private class TransferTask extends AsyncTask<Context, Void, Void> {
+    private class TransferTask extends AsyncTask<Void, Void, Void> {
         @Override
-        protected Void doInBackground(Context... params) {
-            Context context = params[0];
+        protected Void doInBackground(Void... params) {
             Map<String, String> map = new HashMap<>();
             Transaction trx;
 
@@ -132,13 +142,23 @@ public class OkPayment {
                     JSONObject json = new JSONObject(response);
                     if (json.optBoolean("result")) {
                         queue.remove();
-                        persist(context);
+                        persist();
                         continue;
                     }
 
                 } catch (IOException | JSONException e) {
                     Log.d(Shared.LOG_TAG, "Failed to report TRX " + map + ", retry queued: " + e.getMessage(), e);
                 }
+
+                trx.tries++;
+                if (trx.tries > MAX_RETRY_COUNT) {
+                    Log.w(Shared.LOG_TAG, "Reporting TRX " + map + " failed " + trx.tries + " times, cancelling");
+                    queue.remove();
+                    persist();
+                    continue;
+                }
+                persist();
+
                 break;
             }
             return null;

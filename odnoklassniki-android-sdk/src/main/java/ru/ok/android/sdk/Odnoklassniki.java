@@ -82,7 +82,7 @@ public class Odnoklassniki {
         registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
         final ClientConnectionManager cm = new ThreadSafeClientConnManager(params, registry);
         mHttpClient = new DefaultHttpClient(cm, params);
-        okPayment = new OkPayment();
+        okPayment = new OkPayment(context);
 
         // RESTORE
         mAccessToken = TokenStore.getStoredAccessToken(context);
@@ -518,10 +518,10 @@ public class Odnoklassniki {
      * Reports a payment and sends (async) via sdk.reportPayment method<br/>
      */
     public void reportPayment(String trxId, String amount, Currency currency) {
-        okPayment.report(mContext, trxId, amount, currency);
+        okPayment.report(trxId, amount, currency);
     }
 
     private void onValidSessionAppeared() {
-        okPayment.init(mContext);
+        okPayment.init();
     }
 }
