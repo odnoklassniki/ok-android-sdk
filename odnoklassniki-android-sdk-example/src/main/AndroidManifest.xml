@@ -21,7 +21,7 @@
         <activity
             android:name="ru.ok.android.sdk.OkAuthActivity"
             android:configChanges="orientation|screenSize"
-            android:launchMode="singleTask">
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
