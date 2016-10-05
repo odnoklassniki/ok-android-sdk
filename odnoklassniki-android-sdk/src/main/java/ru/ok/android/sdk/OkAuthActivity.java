@@ -28,6 +28,7 @@ public class OkAuthActivity extends Activity {
     private static final int SSO_ACTIVITY_REQUEST_CODE = 31337;
     private static final String DEFAULT_SECRET_KEY = "6C6B6397C2BCE5EDB7290039";
     private static final String DEFAULT_REDIRECT_URI = "okauth://auth";
+    private static final String SSO_STARTED = "SSO_STARTED";
 
     private String mAppId;
     private String mAppKey;
@@ -35,6 +36,7 @@ public class OkAuthActivity extends Activity {
     private String[] mScopes;
     private OkAuthType authType;
     private boolean allowDebugOkSso;
+    private boolean ssoAuthorizationStarted = false;
 
     private WebView mWebView;
 
@@ -54,7 +56,11 @@ public class OkAuthActivity extends Activity {
         mScopes = bundle.getStringArray(Shared.PARAM_SCOPES);
         authType = (OkAuthType) bundle.getSerializable(Shared.PARAM_AUTH_TYPE);
         allowDebugOkSso = bundle.getBoolean(Shared.PARAM_ALLOW_DEBUG_OK_SSO);
-        auth();
+        ssoAuthorizationStarted = bundle.getBoolean(SSO_STARTED, false);
+
+        if (!ssoAuthorizationStarted) {
+            auth();
+        }
     }
 
     private void prepareWebView() {
@@ -71,6 +77,7 @@ public class OkAuthActivity extends Activity {
         outState.putString(Shared.PARAM_REDIRECT_URI, mRedirectUri);
         outState.putStringArray(Shared.PARAM_SCOPES, mScopes);
         outState.putSerializable(Shared.PARAM_AUTH_TYPE, authType);
+        outState.putBoolean(SSO_STARTED, ssoAuthorizationStarted);
     }
 
     @Override
@@ -90,6 +97,7 @@ public class OkAuthActivity extends Activity {
 
         if ((authType == OkAuthType.NATIVE_SSO) || (authType == OkAuthType.ANY)) {
             if (startSsoAuthorization()) {
+                ssoAuthorizationStarted = true;
                 return;
             } else if (authType == OkAuthType.NATIVE_SSO) {
                 onFail(getString(R.string.no_ok_application_installed));
@@ -155,6 +163,7 @@ public class OkAuthActivity extends Activity {
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         if (requestCode == SSO_ACTIVITY_REQUEST_CODE) {
+            ssoAuthorizationStarted = false;
             boolean error = true;
             final String errorStr = data != null ? data.getStringExtra(Shared.PARAM_ERROR) : "";
             if (resultCode == RESULT_OK) {
