@@ -39,9 +39,9 @@ public class OkRequestUtil {
         assert API_URL != null;
     }
 
-    private static String inputStreamToString(final InputStream is) throws IOException {
-        final char[] buffer = new char[0x10000];
-        final StringBuilder sb = new StringBuilder();
+    private static String inputStreamToString(final InputStream is, int contentLength) throws IOException {
+        final StringBuilder sb = new StringBuilder(Math.max(contentLength, 128));
+        final char[] buffer = new char[0x1000];
         final Reader in = new InputStreamReader(is, DEFAULT_ENCODING);
         try {
             int read;
@@ -142,7 +142,7 @@ public class OkRequestUtil {
                 os.close();
             }
 
-            return inputStreamToString(connection.getInputStream());
+            return inputStreamToString(connection.getInputStream(), connection.getContentLength());
         }
     }
 }
