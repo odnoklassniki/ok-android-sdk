@@ -13,7 +13,7 @@ import android.view.KeyEvent;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import ru.ok.android.sdk.util.OkEncryptUtil;
-import ru.ok.android.sdk.util.OkNetUtil;
+import ru.ok.android.sdk.util.OkRequestUtil;
 
 public abstract class AbstractWidgetActivity extends Activity {
 
@@ -123,7 +123,7 @@ public abstract class AbstractWidgetActivity extends Activity {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if (url.startsWith(getReturnUrl())) {
-                    Bundle parameters = OkNetUtil.getUrlParameters(url);
+                    Bundle parameters = OkRequestUtil.getUrlParameters(url);
                     String result = parameters.getString("result");
                     processResult(result);
                 return true;
