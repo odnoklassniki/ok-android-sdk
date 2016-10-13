@@ -9,15 +9,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -32,8 +23,8 @@ import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import ru.ok.android.sdk.util.OkAuthType;
 import ru.ok.android.sdk.util.OkEncryptUtil;
-import ru.ok.android.sdk.util.OkNetUtil;
 import ru.ok.android.sdk.util.OkPayment;
+import ru.ok.android.sdk.util.OkRequestUtil;
 import ru.ok.android.sdk.util.OkScope;
 import ru.ok.android.sdk.util.OkThreadUtil;
 
@@ -76,12 +67,6 @@ public class Odnoklassniki {
         this.mAppId = appId;
         this.mAppKey = appKey;
 
-        // HTTPCLIENT
-        final HttpParams params = new BasicHttpParams();
-        final SchemeRegistry registry = new SchemeRegistry();
-        registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-        final ClientConnectionManager cm = new ThreadSafeClientConnManager(params, registry);
-        mHttpClient = new DefaultHttpClient(cm, params);
         okPayment = new OkPayment(context);
 
         // RESTORE
@@ -102,7 +87,6 @@ public class Odnoklassniki {
     protected String sdkToken;
 
     // Stuff
-    protected final HttpClient mHttpClient;
     protected final OkPayment okPayment;
 
     /**
@@ -264,14 +248,7 @@ public class Odnoklassniki {
         requestParams.put(Shared.PARAM_PLATFORM, Shared.APP_PLATFORM);
         signParameters(requestParams);
         requestParams.put(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
-        final String requestUrl = Shared.API_URL;
-        String response;
-        if ("post".equalsIgnoreCase(httpMethod)) {
-            response = OkNetUtil.performPostRequest(mHttpClient, requestUrl, requestParams);
-        } else {
-            response = OkNetUtil.performGetRequest(mHttpClient, requestUrl, requestParams);
-        }
-        return response;
+        return OkRequestUtil.executeRequest(requestParams);
     }
 
     /**
@@ -315,13 +292,7 @@ public class Odnoklassniki {
             requestParams.put(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
         }
         final String requestUrl = Shared.API_URL;
-        String response;
-        if (mode.contains(OkRequestMode.POST)) {
-            response = OkNetUtil.performPostRequest(mHttpClient, requestUrl, requestParams);
-        } else {
-            response = OkNetUtil.performGetRequest(mHttpClient, requestUrl, requestParams);
-        }
-        return response;
+        return OkRequestUtil.executeRequest(requestParams);
     }
 
     /**

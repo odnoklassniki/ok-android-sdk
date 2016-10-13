@@ -138,7 +138,7 @@ public class OkPayment {
 
                 try {
                     String response = Odnoklassniki.getInstance().request("sdk.reportPayment",
-                            map, EnumSet.of(OkRequestMode.GET, OkRequestMode.SIGNED));
+                            map, EnumSet.of(OkRequestMode.SIGNED));
                     JSONObject json = new JSONObject(response);
                     if (json.optBoolean("result")) {
                         queue.remove();
