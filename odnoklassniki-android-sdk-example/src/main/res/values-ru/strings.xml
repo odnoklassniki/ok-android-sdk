@@ -5,10 +5,14 @@
     <string name="error">Ошибка</string>
 
     <string name="login">Войти</string>
+    <string name="login_sso">Войти через SSO</string>
+    <string name="login_oauth">Войти через OAuth</string>
     <string name="call_users_get_current_user">Вызвать users.getCurrentUser</string>
     <string name="call_user_get_friends">Вызвать users.getFriends</string>
     <string name="post_widget">Сделать пост через виджет</string>
     <string name="app_invite_widget">Пригласить друзей в игру через виджет</string>
     <string name="app_suggest_widget">Рекомендовать игру друзьям через виджет</string>
     <string name="clear_tokens">Очистить токены</string>
+    <string name="call_sdk_send_note">Вызвать sdk.sendNote</string>
+    <string name="call_report_payment">Вызвать sdk.reportPayment</string>
 </resources>
