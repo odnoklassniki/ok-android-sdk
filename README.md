@@ -5,6 +5,23 @@ ok-android-sdk
 Android SDK and sample for native apps integrated with OK.RU
 
 
+Connecting With Maven
+----------
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/ru.ok/odnoklassniki-android-sdk/badge.svg)](https://maven-badges.herokuapp.com/maven-central/ru.ok/odnoklassniki-android-sdk)
+
+You can add next maven dependency in your project:
+
+`ru.ok:odnoklassniki-android-sdk:[MAVEN_CENTRAL_VERSION]`
+
+For example, your gradle script will contains such dependencies: 
+```
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'ru.ok:odnoklassniki-android-sdk:2.0.2'
+}
+```
+
+
 Application Requirements
 -------
 An application registered within OK platform should have:
