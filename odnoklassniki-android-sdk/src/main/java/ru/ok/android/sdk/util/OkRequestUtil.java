@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -88,6 +89,16 @@ public class OkRequestUtil {
             }
         }
         return bundle;
+    }
+
+    public static final String encode(String str) {
+        try {
+            return URLEncoder.encode(str, DEFAULT_ENCODING);
+        } catch (UnsupportedEncodingException e) {
+            //should never be called
+            Log.e(Shared.LOG_TAG, e.getLocalizedMessage());
+        }
+        return null;
     }
 
     public static final String executeRequest(Map<String, String> params) throws IOException {
