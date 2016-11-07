@@ -112,7 +112,7 @@ public class OkAuthActivity extends Activity {
 
     @SuppressWarnings("deprecation")
     private String buildOAuthUrl() {
-        String url = String.format(Shared.OAUTH_GET_TOKEN_URL, mAppId, mRedirectUri);
+        String url = String.format(Shared.OAUTH_GET_TOKEN_URL, mAppId, mRedirectUri, Shared.APP_PLATFORM);
         if ((mScopes != null) && (mScopes.length > 0)) {
             final String scopesString = URLEncoder.encode(TextUtils.join(";", mScopes));
             url = url + "&scope=" + scopesString;
@@ -241,24 +241,26 @@ public class OkAuthActivity extends Activity {
                 String fragment = uri.getFragment();
                 String accessToken = null, sessionSecretKey = null, error = null;
                 long expiresIn = 0;
-                for (String property : fragment.split("&")) {
-                    String[] splitted = property.split("=");
-                    if (splitted.length == 2) {
-                        String key = splitted[0], value = splitted[1];
-                        switch (key) {
-                            case Shared.PARAM_ACCESS_TOKEN:
-                                accessToken = value;
-                                break;
-                            case Shared.PARAM_SESSION_SECRET_KEY:
-                            case Shared.PARAM_REFRESH_TOKEN:
-                                sessionSecretKey = value;
-                                break;
-                            case Shared.PARAM_ERROR:
-                                error = value;
-                                break;
-                            case Shared.PARAM_EXPIRES_IN:
-                                expiresIn = value.isEmpty() ? 0 : Long.parseLong(value);
-                                break;
+                if (fragment != null) {
+                    for (String property : fragment.split("&")) {
+                        String[] splitted = property.split("=");
+                        if (splitted.length == 2) {
+                            String key = splitted[0], value = splitted[1];
+                            switch (key) {
+                                case Shared.PARAM_ACCESS_TOKEN:
+                                    accessToken = value;
+                                    break;
+                                case Shared.PARAM_SESSION_SECRET_KEY:
+                                case Shared.PARAM_REFRESH_TOKEN:
+                                    sessionSecretKey = value;
+                                    break;
+                                case Shared.PARAM_ERROR:
+                                    error = value;
+                                    break;
+                                case Shared.PARAM_EXPIRES_IN:
+                                    expiresIn = value.isEmpty() ? 0 : Long.parseLong(value);
+                                    break;
+                            }
                         }
                     }
                 }

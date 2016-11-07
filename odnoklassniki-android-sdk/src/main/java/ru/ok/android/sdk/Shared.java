@@ -8,7 +8,7 @@ public interface Shared {
     String REMOTE_API = "http://api.ok.ru/";
     String REMOTE_WIDGETS = "https://connect.ok.ru/";
 
-    String OAUTH_GET_TOKEN_URL = REMOTE_PORTAL + "oauth/authorize?client_id=%s&response_type=token&redirect_uri=%s&layout=m";
+    String OAUTH_GET_TOKEN_URL = REMOTE_PORTAL + "oauth/authorize?client_id=%s&response_type=token&redirect_uri=%s&layout=m&platform=%s";
 
     // Params
     String PARAM_ACCESS_TOKEN = "access_token";
