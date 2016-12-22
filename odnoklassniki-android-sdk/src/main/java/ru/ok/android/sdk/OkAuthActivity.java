@@ -1,5 +1,7 @@
 package ru.ok.android.sdk;
 
+import java.net.URLEncoder;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
@@ -18,9 +20,6 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
-
-import java.net.URLEncoder;
-
 import ru.ok.android.sdk.util.OkAuthType;
 
 public class OkAuthActivity extends Activity {
@@ -136,6 +135,9 @@ public class OkAuthActivity extends Activity {
         if (resolveInfo != null) {
             try {
                 final PackageInfo packageInfo = getPackageManager().getPackageInfo(resolveInfo.activityInfo.packageName, PackageManager.GET_SIGNATURES);
+                if (packageInfo == null || packageInfo.versionCode < 120) {
+                    return false;
+                }
                 for (final Signature signature : packageInfo.signatures) {
                     if (signature.toCharsString().equals(ODKL_APP_SIGNATURE)) {
                         ssoAvailable = true;
