@@ -3,6 +3,7 @@
     <string name="app_name">OK SDK Example</string>
 
     <string name="error">Error</string>
+    <string name="auth_cancelled">Authorization cancelled</string>
 
     <string name="login">Login (try SSO, then client OAUTH)</string>
     <string name="login_sso">Login via native SSO only</string>

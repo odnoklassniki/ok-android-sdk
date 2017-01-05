@@ -29,7 +29,7 @@ import ru.ok.android.sdk.util.OkScope;
 import ru.ok.android.sdk.util.OkThreadUtil;
 
 public class Odnoklassniki {
-    private static Odnoklassniki sOdnoklassniki;
+    protected static Odnoklassniki sOdnoklassniki;
 
     /**
      * This method is required to be called before {@link Odnoklassniki#getInstance()}<br>
@@ -60,7 +60,7 @@ public class Odnoklassniki {
         return (sOdnoklassniki != null);
     }
 
-    private Odnoklassniki(final Context context, final String appId, final String appKey) {
+    protected Odnoklassniki(final Context context, final String appId, final String appKey) {
         this.mContext = context;
 
         // APP INFO
@@ -132,7 +132,12 @@ public class Odnoklassniki {
                 final String accessToken = intent.getStringExtra(Shared.PARAM_ACCESS_TOKEN);
                 if (accessToken == null) {
                     String error = intent.getStringExtra(Shared.PARAM_ERROR);
-                    listener.onError(error);
+                    if ((result == OkAuthActivity.RESULT_CANCELLED) && (listener instanceof OkAuthListener)) {
+                        OkAuthListener authListener = (OkAuthListener) listener;
+                        authListener.onCancel(error);
+                    } else {
+                        listener.onError(error);
+                    }
                 } else {
                     final String sessionSecretKey = intent.getStringExtra(Shared.PARAM_SESSION_SECRET_KEY);
                     final String refreshToken = intent.getStringExtra(Shared.PARAM_REFRESH_TOKEN);

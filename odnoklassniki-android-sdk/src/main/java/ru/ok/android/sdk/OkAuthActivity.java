@@ -24,6 +24,8 @@ import ru.ok.android.sdk.util.OkAuthType;
 
 public class OkAuthActivity extends Activity {
     public static final int RESULT_FAILED = 2;
+    public static final int RESULT_CANCELLED = 3;
+
     private static final int SSO_ACTIVITY_REQUEST_CODE = 31337;
     private static final String DEFAULT_SECRET_KEY = "6C6B6397C2BCE5EDB7290039";
     private static final String DEFAULT_REDIRECT_URI = "okauth://auth";
@@ -188,6 +190,13 @@ public class OkAuthActivity extends Activity {
         }
     }
 
+    protected final void onCancel(final String error) {
+        Intent result = new Intent();
+        result.putExtra(Shared.PARAM_ERROR, error);
+        setResult(RESULT_CANCELLED, result);
+        finish();
+    }
+
     protected final void onFail(final String error) {
         Intent result = new Intent();
         result.putExtra(Shared.PARAM_ERROR, error);
@@ -223,7 +232,7 @@ public class OkAuthActivity extends Activity {
         builder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                onFail(message);
+                onCancel(message);
             }
         });
         builder.show();

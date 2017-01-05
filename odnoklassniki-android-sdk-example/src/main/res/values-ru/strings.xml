@@ -3,6 +3,7 @@
     <string name="app_name">OK SDK Example</string>
 
     <string name="error">Ошибка</string>
+    <string name="auth_cancelled">Авторизация отменена</string>
 
     <string name="login">Войти</string>
     <string name="login_sso">Войти через SSO</string>

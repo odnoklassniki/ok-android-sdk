@@ -20,6 +20,7 @@ import android.widget.Button;
 import android.widget.Toast;
 import ru.ok.android.sdk.OKRestHelper;
 import ru.ok.android.sdk.Odnoklassniki;
+import ru.ok.android.sdk.OkAuthListener;
 import ru.ok.android.sdk.OkListener;
 import ru.ok.android.sdk.OkRequestMode;
 import ru.ok.android.sdk.Shared;
@@ -152,8 +153,8 @@ public class MainActivity extends Activity {
      * Creates a listener that is run on OAUTH authorization completion
      */
     @NonNull
-    private OkListener getAuthListener() {
-        return new OkListener() {
+    private OkAuthListener getAuthListener() {
+        return new OkAuthListener() {
             @Override
             public void onSuccess(final JSONObject json) {
                 try {
@@ -170,6 +171,13 @@ public class MainActivity extends Activity {
             public void onError(String error) {
                 Toast.makeText(MainActivity.this,
                         String.format("%s: %s", getString(R.string.error), error),
+                        Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onCancel(String error) {
+                Toast.makeText(MainActivity.this,
+                        String.format("%s: %s", getString(R.string.auth_cancelled), error),
                         Toast.LENGTH_SHORT).show();
             }
         };
