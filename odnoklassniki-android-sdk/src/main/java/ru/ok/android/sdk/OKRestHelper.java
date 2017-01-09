@@ -15,6 +15,7 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import static ru.ok.android.sdk.Shared.LOG_TAG;
+import ru.ok.android.sdk.util.StatsBuilder;
 
 public class OKRestHelper {
 
@@ -116,4 +117,16 @@ public class OKRestHelper {
         return id1 + "_" + id2;
     }
 
+    /**
+     * sdk.reportStats reporting custom statistics to OK platform
+     *
+     * @param builder  statistics builder
+     * @param listener callback
+     */
+    public void sdkReportStats(StatsBuilder builder, OkListener listener) throws JSONException, IOException {
+        Map<String, String> params = new HashMap<>();
+        params.put("stats", builder.build().toString());
+        String response = ok.request("sdk.reportStats", params, OkRequestMode.DEFAULT);
+        notifyListener(listener, response);
+    }
 }
