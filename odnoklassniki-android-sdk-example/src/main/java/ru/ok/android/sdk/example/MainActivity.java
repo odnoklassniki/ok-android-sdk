@@ -202,7 +202,7 @@ public class MainActivity extends Activity {
         @Override
         protected String doInBackground(final Void... params) {
             try {
-                return odnoklassniki.request("users.getCurrentUser", null, "get");
+                return odnoklassniki.request("users.getCurrentUser", null, null);
             } catch (Exception exc) {
                 Log.e("Odnoklassniki", "Failed to get current user info", exc);
             }
@@ -221,7 +221,7 @@ public class MainActivity extends Activity {
         @Override
         protected String doInBackground(final Void... params) {
             try {
-                return odnoklassniki.request("friends.get", null, "get");
+                return odnoklassniki.request("friends.get", null, null);
             } catch (Exception exc) {
                 Log.e("Odnoklassniki", "Failed to get friends", exc);
             }
