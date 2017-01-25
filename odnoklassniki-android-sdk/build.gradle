@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply from: 'library-push.gradle'
+apply from: 'git-tag.gradle'
 
 dependencies {
     compile 'com.android.support:support-annotations:24.2.1'

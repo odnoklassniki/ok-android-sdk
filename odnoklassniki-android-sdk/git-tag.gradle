@@ -1,0 +1,7 @@
+apply plugin: 'org.ajoberstar.grgit'
+
+task addTag(dependsOn: ['build']) << {
+    def tag = "${project.version.toString()}"
+    grgit.tag.add(name: tag, message: "SDK Release ${tag}")
+    grgit.push(refsOrSpecs: [tag])
+}
