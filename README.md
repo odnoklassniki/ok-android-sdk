@@ -1,4 +1,4 @@
-Join our chat on the app: Telegram Messenger, https://telegram.me/joinchat/AAK8BAdKmiij41ce8IT33w 
+Join our chat on the app: Telegram Messenger, https://t.me/joinchat/AAAAAAdKmig4Uh9VmyISJw
 
 ok-android-sdk
 -------
