@@ -67,6 +67,10 @@ public class OkAppInviteActivity extends AbstractWidgetActivity {
 
     @Override
     protected void processError(final String error) {
+        if (!retryAllowed) {
+            processResult(error);
+            return;
+        }
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(error);
         builder.setPositiveButton(getString(R.string.retry), new DialogInterface.OnClickListener() {

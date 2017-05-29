@@ -32,6 +32,7 @@ public interface Shared {
     String PARAM_CODE = "code";
     String PARAM_USER_TEXT_ENABLE = "utext";
     String PARAM_WIDGET_ARGS = "widget_args";
+    String PARAM_WIDGET_RETRY_ALLOWED = "widget_retry_allowed";
     String PARAM_PLATFORM = "platform";
     String PARAM_LOGGED_IN_USER = "logged_in_user";
     String PARAM_RESULT = "result";

@@ -29,6 +29,7 @@ public abstract class AbstractWidgetActivity extends Activity {
     protected String mAccessToken;
     protected String mSessionSecretKey;
     protected final HashMap<String, String> args = new HashMap<>();
+    protected boolean retryAllowed = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +46,9 @@ public abstract class AbstractWidgetActivity extends Activity {
                 if (map != null) {
                     args.putAll(map);
                 }
+            }
+            if (bundle.containsKey(Shared.PARAM_WIDGET_RETRY_ALLOWED)) {
+                retryAllowed = bundle.getBoolean(Shared.PARAM_WIDGET_RETRY_ALLOWED, true);
             }
         }
     }
