@@ -94,6 +94,10 @@ public class Odnoklassniki {
      * Set true if wish to support logging in via OK debug application installed instead of release one
      */
     protected boolean allowDebugOkSso;
+    /**
+     * Widgets ask user to retry the action on error (set false for instant error callback)
+     */
+    protected boolean allowWidgetRetry = true;
 
     /**
      * Starts user authorization
@@ -436,6 +440,7 @@ public class Odnoklassniki {
         intent.putExtra(Shared.PARAM_ATTACHMENT, attachment);
         intent.putExtra(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
         intent.putExtra(Shared.PARAM_WIDGET_ARGS, args);
+        intent.putExtra(Shared.PARAM_WIDGET_RETRY_ALLOWED, allowWidgetRetry);
         intent.putExtra(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey);
         intent.putExtra(Shared.PARAM_USER_TEXT_ENABLE, userTextEnabled);
         activity.startActivityForResult(intent, Shared.OK_POSTING_REQUEST_CODE);
@@ -464,6 +469,7 @@ public class Odnoklassniki {
         Intent intent = new Intent(activity, clazz);
         intent.putExtra(Shared.PARAM_APP_ID, mAppId);
         intent.putExtra(Shared.PARAM_ACCESS_TOKEN, mAccessToken);
+        intent.putExtra(Shared.PARAM_WIDGET_RETRY_ALLOWED, allowWidgetRetry);
         intent.putExtra(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey);
         intent.putExtra(Shared.PARAM_WIDGET_ARGS, args);
         activity.startActivityForResult(intent, requestCode);
