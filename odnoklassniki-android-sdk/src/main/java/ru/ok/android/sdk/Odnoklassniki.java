@@ -78,16 +78,15 @@ public class Odnoklassniki {
 
     private Context mContext;
 
-    // Application info
     protected final String mAppId;
     protected final String mAppKey;
 
-    // Current tokens
     protected String mAccessToken;
     protected String mSessionSecretKey;
     protected String sdkToken;
+    private String apiBaseUrl = Shared.REMOTE_API;
+    private String connectBaseUrl = Shared.REMOTE_WIDGETS;
 
-    // Stuff
     protected final OkPayment okPayment;
 
     /**
@@ -321,36 +320,6 @@ public class Odnoklassniki {
     }
 
     /**
-     * Call an API method and get the result as a String.
-     * <p/>
-     * Note, that those calls <b>MUST be performed in a non-UI thread</b>.<br/>
-     * Note, that if an api method does not return JSONObject but might return array or just a value,
-     * this method should not be used. Thus it is preferable to use #request(String, Map, EnumSet) instead
-     *
-     * @param apiMethod  - odnoklassniki api method.
-     * @param params     - map of key-value params
-     * @param httpMethod - only "get" and "post" are supported.
-     * @param listener   - listener which will be called after method call
-     * @throws IOException
-     * @see #request(String, Map, EnumSet, OkListener)
-     */
-    @Deprecated
-    public final void request(final String apiMethod, final Map<String, String> params,
-                              final String httpMethod, OkListener listener) throws IOException {
-        String response = request(apiMethod, params, null);
-        try {
-            JSONObject json = new JSONObject(response);
-            if (json.has(Shared.PARAM_ERROR_MSG)) {
-                notifyFailed(listener, json.getString(Shared.PARAM_ERROR_MSG));
-            } else {
-                notifySuccess(listener, json);
-            }
-        } catch (JSONException e) {
-            notifyFailed(listener, response);
-        }
-    }
-
-    /**
      * Convenience method to send invitation to the application to friends.
      * <p/>
      * <b>Important: User must confirm the list of recipients. It must be obvious for user, that his action will result sending the pack of invitations to other users. Violating this rule will cause the application to be blocked by administration. In
@@ -522,5 +491,24 @@ public class Odnoklassniki {
 
     private void onValidSessionAppeared() {
         okPayment.init();
+    }
+
+    /**
+     * Sets the base urls for communicating with OK platform
+     *
+     * @param apiBaseUrl     api server url
+     * @param connectBaseUrl connect (widgets) server url
+     */
+    public void setBasePlatformUrls(String apiBaseUrl, String connectBaseUrl) {
+        this.apiBaseUrl = apiBaseUrl;
+        this.connectBaseUrl = connectBaseUrl;
+    }
+
+    public String getApiBaseUrl() {
+        return apiBaseUrl;
+    }
+
+    public String getConnectBaseUrl() {
+        return connectBaseUrl;
     }
 }

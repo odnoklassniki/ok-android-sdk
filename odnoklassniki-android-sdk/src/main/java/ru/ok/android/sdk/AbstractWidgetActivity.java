@@ -60,7 +60,8 @@ public abstract class AbstractWidgetActivity extends Activity {
     protected abstract void processError(String error);
 
     protected final String getBaseUrl() {
-        return Shared.REMOTE_WIDGETS + "dk?st.cmd=" + getWidgetId() +
+        return Odnoklassniki.getInstance().getConnectBaseUrl() +
+                "dk?st.cmd=" + getWidgetId() +
                 "&st.access_token=" + mAccessToken +
                 "&st.app=" + mAppId +
                 "&st.return=" + getReturnUrl();

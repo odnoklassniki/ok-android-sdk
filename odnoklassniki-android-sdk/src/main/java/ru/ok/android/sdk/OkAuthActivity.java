@@ -113,7 +113,9 @@ public class OkAuthActivity extends Activity {
 
     @SuppressWarnings("deprecation")
     private String buildOAuthUrl() {
-        String url = String.format(Shared.OAUTH_GET_TOKEN_URL, mAppId, mRedirectUri, Shared.APP_PLATFORM);
+        String url = String.format(Odnoklassniki.getInstance().getConnectBaseUrl() +
+                "oauth/authorize?client_id=%s&response_type=token&redirect_uri=%s&layout=m&platform=%s",
+                mAppId, mRedirectUri, Shared.APP_PLATFORM);
         if ((mScopes != null) && (mScopes.length > 0)) {
             final String scopesString = URLEncoder.encode(TextUtils.join(";", mScopes));
             url = url + "&scope=" + scopesString;

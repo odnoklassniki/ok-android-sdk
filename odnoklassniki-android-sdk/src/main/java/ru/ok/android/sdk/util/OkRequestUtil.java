@@ -10,7 +10,6 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -23,27 +22,14 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
+import ru.ok.android.sdk.Odnoklassniki;
 import ru.ok.android.sdk.Shared;
 
 public class OkRequestUtil {
-    private static final String DEFAULT_ENCODING = "UTF-8";
-    private static URL API_URL = null;
-
-    static {
-        try {
-            API_URL = new URL(Shared.API_URL);
-        } catch (MalformedURLException e) {
-            //should never be called
-            Log.e(Shared.LOG_TAG, e.getLocalizedMessage());
-        }
-
-        assert API_URL != null;
-    }
-
     private static String inputStreamToString(final InputStream is, int contentLength) throws IOException {
         final StringBuilder sb = new StringBuilder(Math.max(contentLength, 128));
         final char[] buffer = new char[0x1000];
-        final Reader in = new InputStreamReader(is, DEFAULT_ENCODING);
+        final Reader in = new InputStreamReader(is, Shared.ENCODING);
         try {
             int read;
             do {
@@ -93,7 +79,7 @@ public class OkRequestUtil {
 
     public static final String encode(String str) {
         try {
-            return URLEncoder.encode(str, DEFAULT_ENCODING);
+            return URLEncoder.encode(str, Shared.ENCODING);
         } catch (UnsupportedEncodingException e) {
             //should never be called
             Log.e(Shared.LOG_TAG, e.getLocalizedMessage());
@@ -124,7 +110,8 @@ public class OkRequestUtil {
         }
 
         String execute() throws IOException {
-            final HttpURLConnection connection = (HttpURLConnection) API_URL.openConnection();
+            URL url = new URL(Odnoklassniki.getInstance().getApiBaseUrl() + "fb.do");
+            final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setReadTimeout(timeout);
             connection.setConnectTimeout(timeout + 5000);
             connection.setRequestMethod("POST");
@@ -138,13 +125,13 @@ public class OkRequestUtil {
                 if (pair.first == null || pair.second == null) {
                     continue;
                 }
-                queryParameters.add(String.format("%s=%s", URLEncoder.encode(pair.first, DEFAULT_ENCODING), URLEncoder.encode(pair.second, DEFAULT_ENCODING)));
+                queryParameters.add(String.format("%s=%s", URLEncoder.encode(pair.first, Shared.ENCODING), URLEncoder.encode(pair.second, Shared.ENCODING)));
             }
 
             final String query = TextUtils.join("&", queryParameters);
             if (query.length() > 0) {
                 final OutputStream os = connection.getOutputStream();
-                final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, DEFAULT_ENCODING));
+                final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, Shared.ENCODING));
 
                 writer.write(query);
                 writer.flush();
