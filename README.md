@@ -24,21 +24,24 @@ dependencies {
 
 Application Requirements
 -------
-An application registered within OK platform should have:
+An [application registered](https://ok.ru/showcase/myuploaded) within OK platform should have:
 
 1. Target platform checked (like ANDROID or IOS)
 2. EXTERNAL platform checked
 3. Client OAUTH checkbox checked
 4. A VALUABLE_ACCESS permission being checked or requested
-5. (recommended) LONG_ACCESS_TOKEN permission requested from [api-support](mailto:api-support@ok.ru) in order to be able to use tokens with long ttl
-6. A redirect url configured in application settings including okauth://ok12345 where 12345 is your application id on OK platform
+5. (highly recommended) LONG_ACCESS_TOKEN permission requested from [api-support](mailto:api-support@ok.ru) in order to be able to use tokens with long ttl
+
+An application should have _AndroidManifest.xml_ configured
+ 
+1. OkAuthActivity should be added (see Quick Start [example](https://github.com/odnoklassniki/ok-android-sdk/blob/master/odnoklassniki-android-sdk-example/src/main/AndroidManifest.xml#L22))
+2. Specify correct [scheme-host](https://github.com/odnoklassniki/ok-android-sdk/blob/master/odnoklassniki-android-sdk-example/src/main/AndroidManifest.xml#L32) pair like _okauth://ok12345_ where _12345_ is your application id on OK platform for native SSO auth to work correctly
 
 
 Quick Start
 -------
 A quick-start with login and viral widgets is available in [example](https://github.com/odnoklassniki/ok-android-sdk/tree/master/odnoklassniki-android-sdk-example)
 
-Note that you should also register a schema okauth://ok23346346 within your [manifest](https://github.com/odnoklassniki/ok-android-sdk/blob/master/odnoklassniki-android-sdk-example/src/main/AndroidManifest.xml#L39) where 23346346 is application id in order to native sso login to work properly.
 
 FAQ
 -------
