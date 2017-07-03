@@ -1,7 +1,6 @@
 package ru.ok.android.sdk;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Currency;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -16,7 +15,9 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.webkit.CookieManager;
@@ -239,7 +240,6 @@ public class Odnoklassniki {
      * @param params request params
      * @param mode   request mode
      * @return query result
-     * @throws IOException
      * @see OkRequestMode#DEFAULT OkRequestMode.DEFAULT default request mode
      */
     public final String request(String method,
@@ -320,35 +320,28 @@ public class Odnoklassniki {
     }
 
     /**
-     * Convenience method to send invitation to the application to friends.
-     * <p/>
-     * <b>Important: User must confirm the list of recipients. It must be obvious for user, that his action will result sending the pack of invitations to other users. Violating this rule will cause the application to be blocked by administration. In
-     * case of any questions or doubts please contact API support team.</b>
-     * <p/>
-     * <b>Note: Use method friends.getByDevices to get user's friends having devices you are interested in.</b>
+     * Performs a REST API request and gets result via a listener callback
+     * <br/>
+     * This is an async wrapper for {@link #request(String, Map, EnumSet, OkListener)}
      *
-     * @param friendUids     - list of recipient friend ids (required).
-     * @param invitationText - invitation text (can be null).
-     * @param deviceGroups   - list of device groups on which the invitation will be shown. Check {@link ru.ok.android.sdk.util.OkDevice} enum for the list of supported device groups (cannot be null).
-     * @return
-     * @throws IOException
+     * @param method   REST method
+     * @param params   request params
+     * @param mode     request mode
+     * @param listener listener
+     * @return AsyncTask background task for the request
      */
-    public final String inviteFriends(final Collection<String> friendUids, final String invitationText, final String... deviceGroups)
-            throws IOException {
-        if ((friendUids == null) || friendUids.isEmpty()) {
-            throw new IllegalArgumentException(mContext.getString(R.string.friend_uids_cant_be_empty));
-        }
-        final String friendsParamValue = TextUtils.join(",", friendUids);
-        final Map<String, String> params = new HashMap<>();
-        params.put("uids", friendsParamValue);
-        if (!TextUtils.isEmpty(invitationText)) {
-            params.put("text", invitationText);
-        }
-        if ((deviceGroups != null) && (deviceGroups.length > 0)) {
-            final String deviceParamValue = TextUtils.join(",", deviceGroups);
-            params.put("devices", deviceParamValue);
-        }
-        return request("friends.appInvite", params, null);
+    public final AsyncTask<Void, Void, Void> requestAsync(final String method,
+                                                          final @Nullable Map<String, String> params,
+                                                          final @Nullable EnumSet<OkRequestMode> mode,
+                                                          final @NonNull OkListener listener) {
+        AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... parameters) {
+                request(method, params, mode, listener);
+                return null;
+            }
+        };
+        return task.execute();
     }
 
     /**

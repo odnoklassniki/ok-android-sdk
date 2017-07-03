@@ -56,7 +56,17 @@ public class MainActivity extends Activity {
         findViewById(R.id.sdk_get_currentuser).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(final View view) {
-                new GetCurrentUserTask().execute();
+                odnoklassniki.requestAsync("users.getCurrentUser", null, null, new OkListener() {
+                    @Override
+                    public void onSuccess(JSONObject json) {
+                        Toast.makeText(MainActivity.this, "Get current user result: " + json.toString(), Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Toast.makeText(MainActivity.this, "Get current user failed: " + error, Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
         findViewById(R.id.sdk_get_friends).setOnClickListener(new OnClickListener() {
@@ -197,25 +207,6 @@ public class MainActivity extends Activity {
 
     // Using AsyncTask is arbitrary choice
     // Developers should do a better error handling job ;)
-
-    protected final class GetCurrentUserTask extends AsyncTask<Void, Void, String> {
-        @Override
-        protected String doInBackground(final Void... params) {
-            try {
-                return odnoklassniki.request("users.getCurrentUser", null, null);
-            } catch (Exception exc) {
-                Log.e("Odnoklassniki", "Failed to get current user info", exc);
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(final String result) {
-            if (result != null) {
-                Toast.makeText(MainActivity.this, "Get current user result: " + result, Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
 
     protected final class GetFriendsTask extends AsyncTask<Void, Void, String> {
         @Override
