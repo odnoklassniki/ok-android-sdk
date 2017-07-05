@@ -1,9 +1,9 @@
 package ru.ok.android.sdk.example;
 
-import java.io.IOException;
+import java.util.Collections;
 import java.util.Currency;
 import java.util.EnumSet;
-import java.util.HashMap;
+import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -241,29 +241,27 @@ public class MainActivity extends Activity {
     }
 
     private void testIfInstallationSourceIsOK() {
-        new AsyncTask<Void, Void, Integer>() {
+        Map<String, String> args = Collections.singletonMap("adv_id", OkDevice.getAdvertisingId(MainActivity.this));
+        odnoklassniki.requestAsync("sdk.getInstallSource", args, EnumSet.of(OkRequestMode.UNSIGNED), new OkListener() {
             @Override
-            protected Integer doInBackground(Void... params) {
-                HashMap<String, String> args = new HashMap<>();
-                args.put("adv_id", OkDevice.getAdvertisingId(MainActivity.this));
-                int result;
+            public void onSuccess(JSONObject json) {
                 try {
-                    result = Integer.parseInt(odnoklassniki.request("sdk.getInstallSource", args, EnumSet.of(OkRequestMode.UNSIGNED)));
-                } catch (IOException | NumberFormatException e) {
-                    result = -1;
+                    int result = Integer.parseInt(json.optString("result"));
+                    Toast.makeText(MainActivity.this,
+                            (result > 0 ?
+                                    "application installation caused by OK app (" + result + ")" :
+                                    "application is not caused by OK app (" + result + ")"),
+                            Toast.LENGTH_SHORT).show();
+                } catch (NumberFormatException e) {
+                    Toast.makeText(MainActivity.this, "invalid value while getting install source " + json, Toast.LENGTH_SHORT).show();
                 }
-                return result;
             }
 
             @Override
-            protected void onPostExecute(Integer result) {
-                Toast.makeText(MainActivity.this,
-                        (result > 0 ?
-                                "application installation caused by OK app (" + result + ")" :
-                                "application is not caused by OK app (" + result + ")"),
-                        Toast.LENGTH_SHORT).show();
+            public void onError(String error) {
+                Toast.makeText(MainActivity.this, "error while getting install source " + error, Toast.LENGTH_SHORT).show();
             }
-        }.execute();
+        });
     }
 
     protected final class SdkSendNote extends AsyncTask<Void, Void, String> {

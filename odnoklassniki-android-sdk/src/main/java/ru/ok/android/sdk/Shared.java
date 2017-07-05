@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public interface Shared {
-    String REMOTE_API = "http://api.ok.ru/";
+    String REMOTE_API = "https://api.ok.ru/";
     String REMOTE_WIDGETS = "https://connect.ok.ru/";
 
     // Params

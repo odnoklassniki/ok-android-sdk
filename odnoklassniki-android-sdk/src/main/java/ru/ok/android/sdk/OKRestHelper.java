@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import android.content.Context;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -128,5 +129,31 @@ public class OKRestHelper {
         params.put("stats", builder.build().toString());
         String response = ok.request("sdk.reportStats", params, OkRequestMode.DEFAULT);
         notifyListener(listener, response);
+    }
+
+    /**
+     * Retrieves endpoints for OK platform (async).
+     * On success, sets them via {@link Odnoklassniki#setBasePlatformUrls(String, String)}
+     *
+     * @param listener callback
+     */
+    public void sdkGetEndpoints(@Nullable final OkListener listener) {
+        ok.requestAsync("sdk.getEndpoints", null, EnumSet.of(OkRequestMode.SIGNED), new OkListener() {
+            @Override
+            public void onSuccess(JSONObject json) {
+                JSONObject endpoints = json.optJSONObject("endpoints");
+                if (endpoints != null) {
+                    String widgetEndpoint = endpoints.optString("widgets", Shared.REMOTE_WIDGETS);
+                    String apiEndpoint = endpoints.optString("api", Shared.REMOTE_API);
+                    ok.setBasePlatformUrls(apiEndpoint, widgetEndpoint);
+                }
+                ok.notifySuccess(listener, json);
+            }
+
+            @Override
+            public void onError(String error) {
+                ok.notifyFailed(listener, error);
+            }
+        });
     }
 }

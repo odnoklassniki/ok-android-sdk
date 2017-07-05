@@ -491,6 +491,7 @@ public class Odnoklassniki {
      *
      * @param apiBaseUrl     api server url
      * @param connectBaseUrl connect (widgets) server url
+     * @see OKRestHelper#sdkGetEndpoints(OkListener)
      */
     public void setBasePlatformUrls(String apiBaseUrl, String connectBaseUrl) {
         this.apiBaseUrl = apiBaseUrl;
