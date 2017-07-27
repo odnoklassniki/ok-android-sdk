@@ -86,9 +86,12 @@ public class MainActivity extends Activity {
         findViewById(R.id.sdk_post).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                odnoklassniki.performPosting(MainActivity.this,
-                        "{\"media\":[{\"type\":\"text\",\"text\":\"hello world!\"}]}",
-                        false, null);
+                String json = ("{'media':[" +
+                        "{'type':'text', 'text':'Hello world!'}" + ',' +
+                        "{'type':'link', 'url':'https://apiok.ru/'}" + ',' +
+                        "{'type':'app', 'text':'Welcome from sample', 'images':[{'url':'https://apiok.ru/res/img/main/app_create.png'}], 'actions':[{'text': 'Play me!', 'mark': 'play_me_from_app_block'}]}" +
+                        "]}").replaceAll("'", "\"");
+                odnoklassniki.performPosting(MainActivity.this, json, false, null);
             }
         });
         findViewById(R.id.sdk_app_invite).setOnClickListener(new OnClickListener() {
