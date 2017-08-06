@@ -1,7 +1,5 @@
 package ru.ok.android.sdk;
 
-import java.net.URLEncoder;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
@@ -21,6 +19,9 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
+
+import java.net.URLEncoder;
+
 import ru.ok.android.sdk.util.OkAuthType;
 
 public class OkAuthActivity extends Activity {
@@ -42,6 +43,8 @@ public class OkAuthActivity extends Activity {
 
     private WebView mWebView;
 
+    private boolean killable;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,6 +65,28 @@ public class OkAuthActivity extends Activity {
 
         if (!ssoAuthorizationStarted) {
             auth();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        killable = false;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+            killable = true;
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            killable = true;
         }
     }
 
@@ -224,26 +249,25 @@ public class OkAuthActivity extends Activity {
     }
 
     private void showAlert(final String message) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed()) {
+        if (killable || isFinishing()) {
             return;
         }
-        if (!isFinishing()) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(OkAuthActivity.this);
-            builder.setMessage(message);
-            builder.setPositiveButton(getString(R.string.retry), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    auth();
-                }
-            });
-            builder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    onCancel(message);
-                }
-            });
-            builder.show();
-        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(OkAuthActivity.this);
+        builder.setMessage(message);
+        builder.setPositiveButton(getString(R.string.retry), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                auth();
+            }
+        });
+        builder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                onCancel(message);
+            }
+        });
+        builder.show();
     }
 
     private static final String ODKL_APP_SIGNATURE = "3082025b308201c4a00302010202044f6760f9300d06092a864886f70d01010505003071310c300a06035504061303727573310c300a06035504081303737062310c300a0603550407130373706231163014060355040a130d4f646e6f6b6c6173736e696b6931143012060355040b130b6d6f62696c65207465616d311730150603550403130e416e647265792041736c616d6f763020170d3132303331393136333831375a180f32303636313232313136333831375a3071310c300a06035504061303727573310c300a06035504081303737062310c300a0603550407130373706231163014060355040a130d4f646e6f6b6c6173736e696b6931143012060355040b130b6d6f62696c65207465616d311730150603550403130e416e647265792041736c616d6f7630819f300d06092a864886f70d010101050003818d003081890281810080bea15bf578b898805dfd26346b2fbb662889cd6aba3f8e53b5b27c43a984eeec9a5d21f6f11667d987b77653f4a9651e20b94ff10594f76a93a6a36e6a42f4d851847cf1da8d61825ce020b7020cd1bc2eb435b0d416908be9393516ca1976ff736733c1d48ff17cd57f21ad49e05fc99384273efc5546e4e53c5e9f391c430203010001300d06092a864886f70d0101050500038181007d884df69a9748eabbdcfe55f07360433b23606d3b9d4bca03109c3ffb80fccb7809dfcbfd5a466347f1daf036fbbf1521754c2d1d999f9cbc66b884561e8201459aa414677e411e66360c3840ca4727da77f6f042f2c011464e99f34ba7df8b4bceb4fa8231f1d346f4063f7ba0e887918775879e619786728a8078c76647ed";
