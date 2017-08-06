@@ -15,6 +15,7 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
 import android.net.Uri;
 import android.net.http.SslError;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -223,6 +224,9 @@ public class OkAuthActivity extends Activity {
     }
 
     private void showAlert(final String message) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed()) {
+            return;
+        }
         if (!isFinishing()) {
             AlertDialog.Builder builder = new AlertDialog.Builder(OkAuthActivity.this);
             builder.setMessage(message);
