@@ -17,7 +17,7 @@ For example, your gradle script will contains such dependencies:
 ```
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'ru.ok:odnoklassniki-android-sdk:2.0.2'
+    compile 'ru.ok:odnoklassniki-android-sdk:2.1.2'
 }
 ```
 
