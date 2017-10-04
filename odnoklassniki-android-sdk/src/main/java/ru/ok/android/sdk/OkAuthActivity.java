@@ -313,6 +313,12 @@ public class OkAuthActivity extends Activity {
                     onFail(error);
                 }
                 return true;
+            } else if (url.contains("st.cmd=userMain")) {
+                // If user presses "forget password" and goes via the account return procedure, the context of
+                // OAUTH authorization is lost. We catch successful user navigation to his main page to retry OAUTH
+                // with the new currently valid user session
+                mWebView.loadUrl(buildOAuthUrl());
+                return true;
             }
             return super.shouldOverrideUrlLoading(view, url);
         }
