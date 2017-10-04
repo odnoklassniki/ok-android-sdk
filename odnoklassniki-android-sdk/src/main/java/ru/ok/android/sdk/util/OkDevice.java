@@ -30,8 +30,12 @@ public class OkDevice {
             Class<?> googlePlayServicesUtil = Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient");
             Method getAdvertisingIdInfo = googlePlayServicesUtil.getMethod("getAdvertisingIdInfo", Context.class);
             Object advertisingIdInfo = getAdvertisingIdInfo.invoke(null, context);
-            Method getId = advertisingIdInfo.getClass().getMethod("getId");
-            advId = (String) getId.invoke(advertisingIdInfo);
+            if (advertisingIdInfo != null) {
+                Method getId = advertisingIdInfo.getClass().getMethod("getId");
+                advId = (String) getId.invoke(advertisingIdInfo);
+            } else {
+                Log.d("Odnoklassniki", "Requesting advertising info from gms, got null");
+            }
         } catch (ClassNotFoundException e) {
             if (FALLBACK_TO_ANDROID_ID) {
                 Log.d("Odnoklassniki", "A dependency on com.google.android.gms:play-services-ads is required in order to use OkDevice.getAdvertisingId, falling back to ANDROID_ID instead");
