@@ -1,14 +1,12 @@
 package ru.ok.android.sdk;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.webkit.WebView;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class OkPostingActivity extends AbstractWidgetActivity {
 
@@ -24,7 +22,8 @@ public class OkPostingActivity extends AbstractWidgetActivity {
             args.put("st.utext", bundle.getBoolean(Shared.PARAM_USER_TEXT_ENABLE, false) ? "on" : "off");
         }
 
-        loadPage();
+        String url = prepareUrl(null);
+        ((WebView) findViewById(R.id.web_view)).loadUrl(url);
     }
 
     private void prepareWebView() {
@@ -38,37 +37,9 @@ public class OkPostingActivity extends AbstractWidgetActivity {
         return R.string.posting_canceled;
     }
 
-    private void loadPage() {
-        String url = prepareUrl(null);
-        ((WebView) findViewById(R.id.web_view)).loadUrl(url);
-    }
-
     @Override
     protected String getWidgetId() {
         return "WidgetMediatopicPost";
-    }
-
-    @Override
-    protected void processError(final String error) {
-        if (!retryAllowed) {
-            processResult(error);
-            return;
-        }
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(error);
-        builder.setPositiveButton(getString(R.string.retry), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                loadPage();
-            }
-        });
-        builder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                processResult(error);
-            }
-        });
-        builder.show();
     }
 
     @Override

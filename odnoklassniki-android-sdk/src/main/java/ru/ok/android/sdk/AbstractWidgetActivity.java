@@ -5,7 +5,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.net.http.SslError;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -57,7 +59,33 @@ public abstract class AbstractWidgetActivity extends Activity {
 
     protected abstract void processResult(String result);
 
-    protected abstract void processError(String error);
+    protected final void processError(final String error) {
+        if (!retryAllowed) {
+            processResult(error);
+            return;
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(error);
+        builder.setPositiveButton(getString(R.string.retry), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String url = prepareUrl(null);
+                ((WebView) findViewById(R.id.web_view)).loadUrl(url);
+            }
+        });
+        builder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                processResult(error);
+            }
+        });
+        try {
+            builder.show();
+        } catch (RuntimeException ignore) {
+            // this usually happens during fast back. avoid crash in such a case
+            processResult(error);
+        }
+    }
 
     protected final String getBaseUrl() {
         return Odnoklassniki.getInstance().getConnectBaseUrl() +

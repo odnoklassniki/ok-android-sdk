@@ -1,23 +1,21 @@
 package ru.ok.android.sdk;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.webkit.WebView;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 public class OkAppInviteActivity extends AbstractWidgetActivity {
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(getActivityView());
         prepareWebView();
-        loadPage();
+        String url = prepareUrl(null);
+        ((WebView) findViewById(R.id.web_view)).loadUrl(url);
     }
 
     protected int getActivityView() {
@@ -32,11 +30,6 @@ public class OkAppInviteActivity extends AbstractWidgetActivity {
 
     protected int getCancelledMessageId() {
         return R.string.invite_canceled;
-    }
-
-    private void loadPage() {
-        String url = prepareUrl(null);
-        ((WebView) findViewById(R.id.web_view)).loadUrl(url);
     }
 
     @Override
@@ -63,28 +56,5 @@ public class OkAppInviteActivity extends AbstractWidgetActivity {
         }
         setResult(Activity.RESULT_OK, resultIntent);
         finish();
-    }
-
-    @Override
-    protected void processError(final String error) {
-        if (!retryAllowed) {
-            processResult(error);
-            return;
-        }
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(error);
-        builder.setPositiveButton(getString(R.string.retry), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                loadPage();
-            }
-        });
-        builder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                processResult(error);
-            }
-        });
-        builder.show();
     }
 }
