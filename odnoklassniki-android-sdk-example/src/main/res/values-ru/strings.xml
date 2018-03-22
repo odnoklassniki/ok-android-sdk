@@ -16,4 +16,5 @@
     <string name="clear_tokens">Очистить токены</string>
     <string name="call_sdk_send_note">Вызвать sdk.sendNote</string>
     <string name="call_report_payment">Вызвать sdk.reportPayment</string>
+    <string name="call_report_stats">Вызвать sdk.reportStats</string>
 </resources>

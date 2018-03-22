@@ -1,94 +1,112 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:orientation="vertical"
+    tools:context=".MainActivity"
+    >
 
     <LinearLayout
         android:id="@+id/login_block"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        >
 
         <Button
             android:id="@+id/sdk_login_any"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="@string/login" />
+            android:text="@string/login"
+            />
 
         <Button
             android:id="@+id/sdk_login_sso"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="@string/login_sso" />
+            android:text="@string/login_sso"
+            />
 
         <Button
             android:id="@+id/sdk_login_oauth"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="@string/login_oauth" />
+            android:text="@string/login_oauth"
+            />
     </LinearLayout>
 
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/sdk_form"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:visibility="gone">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible"
+        >
 
         <Button
             android:id="@+id/sdk_get_currentuser"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="@string/call_users_get_current_user" />
+            android:text="@string/call_users_get_current_user"
+            />
 
         <Button
             android:id="@+id/sdk_get_friends"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/sdk_get_currentuser"
-            android:text="@string/call_user_get_friends" />
+            android:text="@string/call_user_get_friends"
+            />
 
         <Button
             android:id="@+id/sdk_post"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/sdk_get_friends"
-            android:text="@string/post_widget" />
+            android:text="@string/post_widget"
+            />
 
         <Button
             android:id="@+id/sdk_app_invite"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/sdk_post"
-            android:text="@string/app_invite_widget" />
+            android:text="@string/app_invite_widget"
+            />
 
         <Button
             android:id="@+id/sdk_app_suggest"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/sdk_app_invite"
-            android:text="@string/app_suggest_widget" />
+            android:text="@string/app_suggest_widget"
+            />
 
         <Button
             android:id="@+id/sdk_send_note"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/sdk_app_suggest"
-            android:text="@string/call_sdk_send_note" />
+            android:text="@string/call_sdk_send_note"
+            />
 
         <Button
             android:id="@+id/sdk_report_payment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/sdk_send_note"
-            android:text="@string/call_report_payment" />
+            android:text="@string/call_report_payment"
+            />
+
+        <Button
+            android:id="@+id/sdk_report_stats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/call_report_stats"
+            />
 
         <Button
             android:id="@+id/sdk_logout"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:text="@string/clear_tokens" />
-    </RelativeLayout>
+            android:text="@string/clear_tokens"
+            />
+    </LinearLayout>
 
-</RelativeLayout>
+</LinearLayout>

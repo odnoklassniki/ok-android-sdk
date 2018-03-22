@@ -57,4 +57,6 @@ public interface Shared {
     int OK_SUGGESTING_REQUEST_CODE = 22893;
 
     String LOG_TAG = "ok_android_sdk";
+
+    int ERROR_PERMISSION_DENIED = 10;
 }

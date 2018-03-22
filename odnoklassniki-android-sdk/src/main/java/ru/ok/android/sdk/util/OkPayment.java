@@ -31,6 +31,7 @@ public class OkPayment {
     private static final String CURRENCY = "currency";
     private static final String TRIES = "tries";
     private static final int MAX_RETRY_COUNT = 20;
+    public static final String METHOD = "sdk.reportPayment";
 
     private class Transaction {
         private String id;
@@ -137,13 +138,18 @@ public class OkPayment {
                 map.put("currency", trx.currency);
 
                 try {
-                    String response = Odnoklassniki.getInstance().request("sdk.reportPayment",
+                    String response = Odnoklassniki.getInstance().request(METHOD,
                             map, EnumSet.of(OkRequestMode.SIGNED));
                     JSONObject json = new JSONObject(response);
                     if (json.optBoolean("result")) {
                         queue.remove();
                         persist();
                         continue;
+                    } else {
+                        Log.d(Shared.LOG_TAG, METHOD + " resulted with error: " + json.toString());
+                        if (json.optInt("error_code", 0) == Shared.ERROR_PERMISSION_DENIED) {
+                            Log.e(Shared.LOG_TAG, "Did not you forgot to ask moderators for permission to access " + METHOD + "?");
+                        }
                     }
 
                 } catch (IOException | JSONException e) {

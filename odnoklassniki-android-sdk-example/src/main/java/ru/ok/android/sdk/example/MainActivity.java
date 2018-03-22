@@ -1,5 +1,6 @@
 package ru.ok.android.sdk.example;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Currency;
 import java.util.EnumSet;
@@ -27,8 +28,9 @@ import ru.ok.android.sdk.Shared;
 import ru.ok.android.sdk.util.OkAuthType;
 import ru.ok.android.sdk.util.OkDevice;
 import ru.ok.android.sdk.util.OkScope;
+import ru.ok.android.sdk.util.StatsBuilder;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements OnClickListener {
     protected static final String APP_ID = "125497344";
     protected static final String APP_KEY = "CBABPLHIABABABABA";
     protected static final String REDIRECT_URL = "okauth://ok125497344";
@@ -45,9 +47,9 @@ public class MainActivity extends Activity {
 
         loginView = findViewById(R.id.login_block);
 
-        Button mLoginBtn = (Button) findViewById(R.id.sdk_login_any);
-        Button mLoginBtnSso = (Button) findViewById(R.id.sdk_login_sso);
-        Button mLoginBtnOAuth = (Button) findViewById(R.id.sdk_login_oauth);
+        Button mLoginBtn = findViewById(R.id.sdk_login_any);
+        Button mLoginBtnSso = findViewById(R.id.sdk_login_sso);
+        Button mLoginBtnOAuth = findViewById(R.id.sdk_login_oauth);
         mLoginBtn.setOnClickListener(new LoginClickListener(OkAuthType.ANY));
         mLoginBtnSso.setOnClickListener(new LoginClickListener(OkAuthType.NATIVE_SSO));
         mLoginBtnOAuth.setOnClickListener(new LoginClickListener(OkAuthType.WEBVIEW_OAUTH));
@@ -106,18 +108,9 @@ public class MainActivity extends Activity {
                 odnoklassniki.performAppSuggest(MainActivity.this, null);
             }
         });
-        findViewById(R.id.sdk_send_note).setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new SdkSendNote().execute();
-            }
-        });
-        findViewById(R.id.sdk_report_payment).setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                odnoklassniki.reportPayment(Math.random() + "", "6.28", Currency.getInstance("EUR"));
-            }
-        });
+        findViewById(R.id.sdk_send_note).setOnClickListener(this);
+        findViewById(R.id.sdk_report_payment).setOnClickListener(this);
+        findViewById(R.id.sdk_report_stats).setOnClickListener(this);
 
         odnoklassniki = Odnoklassniki.createInstance(this, APP_ID, APP_KEY);
         odnoklassniki.checkValidTokens(new OkListener() {
@@ -208,6 +201,21 @@ public class MainActivity extends Activity {
         loginView.setVisibility(View.VISIBLE);
     }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.sdk_send_note:
+                new SdkSendNote().execute();
+                break;
+            case R.id.sdk_report_payment:
+                odnoklassniki.reportPayment(Math.random() + "", "6.28", Currency.getInstance("EUR"));
+                break;
+            case R.id.sdk_report_stats:
+                new SdkReportStats().execute();
+                break;
+        }
+    }
+
     // Using AsyncTask is arbitrary choice
     // Developers should do a better error handling job ;)
 
@@ -295,6 +303,31 @@ public class MainActivity extends Activity {
                 });
             } catch (Exception e) {
                 Log.e(Shared.LOG_TAG, "sdk.sendNote " + e.getMessage(), e);
+            }
+            return null;
+        }
+    }
+
+    protected final class SdkReportStats extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... voids) {
+            OKRestHelper helper = new OKRestHelper(odnoklassniki);
+            try {
+                StatsBuilder builder = new StatsBuilder()
+                        .addCounter(StatsBuilder.Type.COUNTER, "bananas", System.currentTimeMillis(), "1");
+                helper.sdkReportStats(builder, new OkListener() {
+                    @Override
+                    public void onSuccess(JSONObject json) {
+                        Log.d(Shared.LOG_TAG, "statistics reported OK " + json.toString());
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.d(Shared.LOG_TAG, "statistics reported ERR " + error);
+                    }
+                });
+            } catch (JSONException | IOException e) {
+                Log.d(Shared.LOG_TAG, "error with statistics reporting: " + e.getMessage(), e);
             }
             return null;
         }

@@ -16,4 +16,5 @@
     <string name="clear_tokens">Clear tokens</string>
     <string name="call_sdk_send_note">Call sdk.sendNote</string>
     <string name="call_report_payment">Call sdk.reportPayment</string>
+    <string name="call_report_stats">Call sdk.reportStats</string>
 </resources>
