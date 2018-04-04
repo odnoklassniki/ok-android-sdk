@@ -3,7 +3,7 @@ apply from: 'library-push.gradle'
 apply from: 'git-tag.gradle'
 
 dependencies {
-    compile 'com.android.support:support-annotations:24.2.1'
+    compile 'com.android.support:support-annotations:27.1.0'
 }
 
 android {
