@@ -3,15 +3,15 @@ apply from: 'library-push.gradle'
 apply from: 'git-tag.gradle'
 
 dependencies {
-    compile 'com.android.support:support-annotations:27.1.0'
+    implementation 'com.android.support:support-annotations:27.1.1'
 }
 
 android {
     compileSdkVersion rootProject.property("android.compile.sdk.version") as int
     buildToolsVersion rootProject.property("android.build.tools.version")
     defaultConfig {
-        minSdkVersion 9
-        targetSdkVersion 24
+        minSdkVersion 14
+        targetSdkVersion 27
     }
     productFlavors {
     }
