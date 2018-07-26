@@ -15,6 +15,10 @@ public enum OkRequestMode {
      * SDK session required
      */
     SDK_SESSION,
+    /**
+     * Not reporting platform via REST
+     */
+    NO_PLATFORM_REPORTING,
     //
     ;
 

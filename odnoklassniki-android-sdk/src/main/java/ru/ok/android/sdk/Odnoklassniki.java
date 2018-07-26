@@ -259,7 +259,9 @@ public class Odnoklassniki {
         }
         requestParams.put(Shared.PARAM_APP_KEY, mAppKey);
         requestParams.put(Shared.PARAM_METHOD, method);
-        requestParams.put(Shared.PARAM_PLATFORM, Shared.APP_PLATFORM);
+        if (!mode.contains(OkRequestMode.NO_PLATFORM_REPORTING)) {
+            requestParams.put(Shared.PARAM_PLATFORM, Shared.APP_PLATFORM);
+        }
         if (mode.contains(OkRequestMode.SDK_SESSION)) {
             if (TextUtils.isEmpty(sdkToken)) {
                 throw new IllegalArgumentException("SDK token is required for method call, have not forget to call sdkInit?");
