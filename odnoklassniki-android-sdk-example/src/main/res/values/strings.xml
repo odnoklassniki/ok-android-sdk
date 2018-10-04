@@ -14,7 +14,5 @@
     <string name="app_invite_widget">Invite friends to app widget</string>
     <string name="app_suggest_widget">Suggest app to friends widget</string>
     <string name="clear_tokens">Clear tokens</string>
-    <string name="call_sdk_send_note">Call sdk.sendNote</string>
     <string name="call_report_payment">Call sdk.reportPayment</string>
-    <string name="call_report_stats">Call sdk.reportStats</string>
 </resources>

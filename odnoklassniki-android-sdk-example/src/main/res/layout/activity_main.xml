@@ -81,24 +81,10 @@
             />
 
         <Button
-            android:id="@+id/sdk_send_note"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/call_sdk_send_note"
-            />
-
-        <Button
             android:id="@+id/sdk_report_payment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/call_report_payment"
-            />
-
-        <Button
-            android:id="@+id/sdk_report_stats"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/call_report_stats"
             />
 
         <Button
