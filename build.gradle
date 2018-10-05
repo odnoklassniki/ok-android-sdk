@@ -18,7 +18,7 @@ buildscript {
 
 allprojects {
     group = 'ru.ok'
-    version = '2.1.5'
+    version = '2.1.6'
 
     repositories {
         mavenCentral()
@@ -26,5 +26,6 @@ allprojects {
             url 'https://maven.google.com/'
             name 'Google'
         }
+        jcenter()
     }
 }
