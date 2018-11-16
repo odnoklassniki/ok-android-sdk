@@ -5,6 +5,9 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 /**
  * Listener methods are guaranteed to be called on the main (UI) thread.
  *
@@ -20,10 +23,10 @@ public interface OkListener {
      * @see Odnoklassniki#request(String, Map, EnumSet, OkListener) request() for description how non-JSON-object
      * results are treated
      */
-    void onSuccess(final JSONObject json);
+    void onSuccess(@NonNull final JSONObject json);
 
     /**
      * Request was unsuccessful due any reason.
      */
-    void onError(String error);
+    void onError(@Nullable String error);
 }

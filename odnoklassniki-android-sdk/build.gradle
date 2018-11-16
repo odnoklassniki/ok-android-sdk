@@ -1,9 +1,12 @@
 apply plugin: 'com.android.library'
 apply from: 'library-push.gradle'
 apply from: 'git-tag.gradle'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 
 dependencies {
     implementation 'androidx.annotation:annotation:1.0.0'
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
 android {
@@ -15,4 +18,7 @@ android {
     }
     productFlavors {
     }
+}
+repositories {
+    mavenCentral()
 }

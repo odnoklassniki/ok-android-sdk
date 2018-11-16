@@ -3,7 +3,6 @@ package ru.ok.android.sdk.example
 import java.util.Currency
 
 import org.json.JSONException
-import org.json.JSONObject
 
 import android.app.Activity
 import android.content.Intent
@@ -11,11 +10,10 @@ import android.os.Bundle
 import android.view.View.*
 import android.widget.Toast
 import ru.ok.android.sdk.Odnoklassniki
-import ru.ok.android.sdk.OkAuthListener
-import ru.ok.android.sdk.OkListener
 import ru.ok.android.sdk.util.OkAuthType
 import ru.ok.android.sdk.util.OkScope
 import kotlinx.android.synthetic.main.activity_main.*
+import ru.ok.android.sdk.ContextOkListener
 
 private const val APP_ID = "125497344"
 private const val APP_KEY = "CBABPLHIABABABABA"
@@ -41,26 +39,16 @@ class MainActivity : Activity() {
         }
 
         sdk_get_currentuser.setOnClickListener {
-            ok.requestAsync("users.getCurrentUser", null, null, object : OkListener {
-                override fun onSuccess(json: JSONObject) {
-                    toast("Get current user result: " + json.toString())
-                }
-
-                override fun onError(error: String) {
-                    toast("Get current user failed: $error")
-                }
-            })
+            ok.requestAsync("users.getCurrentUser", null, null, ContextOkListener(this,
+                    onSuccess = { _, json -> toast("Get current user result: " + json.toString()) },
+                    onError = { _, err -> toast("Get current user failed: $err") }
+            ))
         }
         sdk_get_friends.setOnClickListener {
-            ok.requestAsync("friends.get", null, null, object : OkListener {
-                override fun onSuccess(json: JSONObject?) {
-                    toast("Get user friends result: $json")
-                }
-
-                override fun onError(error: String?) {
-                    toast("Failed to get friends: $error")
-                }
-            })
+            ok.requestAsync("friends.get", null, null, ContextOkListener(this,
+                    onSuccess = { _, json -> toast("Get user friends result: $json") },
+                    onError = { _, err -> toast("Failed to get friends: $err") }
+            ))
         }
         sdk_logout.setOnClickListener {
             ok.clearTokens()
@@ -88,57 +76,41 @@ class MainActivity : Activity() {
         }
 
         ok = Odnoklassniki.createInstance(this, APP_ID, APP_KEY)
-        ok.checkValidTokens(object : OkListener {
-            override fun onSuccess(json: JSONObject) {
-                showAppData()
-            }
-
-            override fun onError(error: String) {
-                toast(String.format("%s: %s", getString(R.string.error), error))
-            }
-        })
+        ok.checkValidTokens(ContextOkListener(this,
+                onSuccess = { _, _ -> showAppData() },
+                onError = { _, err -> toast(getString(R.string.error) + ": $err") }
+        ))
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         when {
             Odnoklassniki.getInstance().isActivityRequestOAuth(requestCode) -> {
                 // process OAUTH sign-in response
-                Odnoklassniki.getInstance().onAuthActivityResult(requestCode, resultCode, data, object : OkAuthListener {
-                    override fun onSuccess(json: JSONObject) {
-                        try {
-                            toast(String.format("access_token: %s", json.getString("access_token")))
-                            showAppData()
-                        } catch (e: JSONException) {
-                            toast("unable to parse login request ${e.message}")
-                        }
-                    }
-
-                    override fun onError(error: String) {
-                        toast(String.format("%s: %s", getString(R.string.error), error))
-                    }
-
-                    override fun onCancel(error: String) {
-                        toast(String.format("%s: %s", getString(R.string.auth_cancelled), error))
-                    }
-                })
+                Odnoklassniki.getInstance().onAuthActivityResult(requestCode, resultCode, data, ContextOkListener(this,
+                        onSuccess = { _, json ->
+                            try {
+                                toast(String.format("access_token: %s", json.getString("access_token")))
+                                showAppData()
+                            } catch (e: JSONException) {
+                                toast("unable to parse login request ${e.message}")
+                            }
+                        },
+                        onError = { _, err -> toast(getString(R.string.error) + ": $err") },
+                        onCancel = { _, err -> toast(getString(R.string.auth_cancelled) + ": $err") }
+                ))
             }
             Odnoklassniki.getInstance().isActivityRequestViral(requestCode) -> {
                 // process called viral widgets (suggest / invite / post)
-                Odnoklassniki.getInstance().onActivityResultResult(requestCode, resultCode, data, object : OkListener {
-                    override fun onSuccess(json: JSONObject) {
-                        toast(json.toString())
-                    }
-
-                    override fun onError(error: String) {
-                        toast(String.format("%s: %s", getString(R.string.error), error))
-                    }
-                })
+                Odnoklassniki.getInstance().onActivityResultResult(requestCode, resultCode, data, ContextOkListener(this,
+                                onSuccess = { _, json -> toast(json.toString()) },
+                                onError = { _, err -> toast(getString(R.string.error) + ": $err") }
+                        ))
             }
             else -> super.onActivityResult(requestCode, resultCode, data)
         }
     }
 
-    fun showAppData(loggedIn: Boolean = true) {
+    private fun showAppData(loggedIn: Boolean = true) {
         sdk_form.visibility = if (loggedIn) VISIBLE else GONE
         login_block.visibility = if (loggedIn) GONE else VISIBLE
     }
