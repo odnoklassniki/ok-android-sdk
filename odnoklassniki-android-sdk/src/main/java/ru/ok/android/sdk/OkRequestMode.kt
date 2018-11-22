@@ -1,8 +1,8 @@
-package ru.ok.android.sdk;
+package ru.ok.android.sdk
 
-import java.util.EnumSet;
+import java.util.EnumSet
 
-public enum OkRequestMode {
+enum class OkRequestMode {
     /**
      * Request should be signed using OAUTH access token
      */
@@ -18,12 +18,14 @@ public enum OkRequestMode {
     /**
      * Not reporting platform via REST
      */
-    NO_PLATFORM_REPORTING,
-    //
-    ;
+    NO_PLATFORM_REPORTING;
 
-    /**
-     * Default request modes
-     */
-    public static final EnumSet<OkRequestMode> DEFAULT = EnumSet.of(OkRequestMode.SIGNED);
+
+    companion object {
+        /**
+         * Default request modes
+         */
+        @JvmStatic
+        val DEFAULT = EnumSet.of(OkRequestMode.SIGNED)
+    }
 }

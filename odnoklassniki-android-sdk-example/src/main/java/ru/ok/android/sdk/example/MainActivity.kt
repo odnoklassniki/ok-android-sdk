@@ -15,9 +15,11 @@ import ru.ok.android.sdk.util.OkScope
 import kotlinx.android.synthetic.main.activity_main.*
 import ru.ok.android.sdk.ContextOkListener
 
+// -------------- YOUR APP DATA GOES HERE ------------
 private const val APP_ID = "125497344"
 private const val APP_KEY = "CBABPLHIABABABABA"
 private const val REDIRECT_URL = "okauth://ok125497344"
+// -------------- YOUR APP DATA ENDS -----------------
 
 class MainActivity : Activity() {
 
@@ -39,13 +41,13 @@ class MainActivity : Activity() {
         }
 
         sdk_get_currentuser.setOnClickListener {
-            ok.requestAsync("users.getCurrentUser", null, null, ContextOkListener(this,
+            ok.requestAsync("users.getCurrentUser", listener = ContextOkListener(this,
                     onSuccess = { _, json -> toast("Get current user result: " + json.toString()) },
                     onError = { _, err -> toast("Get current user failed: $err") }
             ))
         }
         sdk_get_friends.setOnClickListener {
-            ok.requestAsync("friends.get", null, null, ContextOkListener(this,
+            ok.requestAsync("friends.get", listener = ContextOkListener(this,
                     onSuccess = { _, json -> toast("Get user friends result: $json") },
                     onError = { _, err -> toast("Failed to get friends: $err") }
             ))
@@ -69,7 +71,7 @@ class MainActivity : Activity() {
             """.trimIndent()
             ok.performPosting(this, json, false, null)
         }
-        sdk_app_invite.setOnClickListener { ok.performAppInvite(this, null) }
+        sdk_app_invite.setOnClickListener { ok.performAppInvite(this) }
         sdk_app_suggest.setOnClickListener { ok.performAppSuggest(this, null) }
         sdk_report_payment.setOnClickListener {
             ok.reportPayment(Math.random().toString() + "", "6.28", Currency.getInstance("EUR"))
@@ -84,9 +86,9 @@ class MainActivity : Activity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         when {
-            Odnoklassniki.getInstance().isActivityRequestOAuth(requestCode) -> {
+            Odnoklassniki.instance.isActivityRequestOAuth(requestCode) -> {
                 // process OAUTH sign-in response
-                Odnoklassniki.getInstance().onAuthActivityResult(requestCode, resultCode, data, ContextOkListener(this,
+                Odnoklassniki.instance.onAuthActivityResult(requestCode, resultCode, data, ContextOkListener(this,
                         onSuccess = { _, json ->
                             try {
                                 toast(String.format("access_token: %s", json.getString("access_token")))
@@ -99,12 +101,12 @@ class MainActivity : Activity() {
                         onCancel = { _, err -> toast(getString(R.string.auth_cancelled) + ": $err") }
                 ))
             }
-            Odnoklassniki.getInstance().isActivityRequestViral(requestCode) -> {
+            Odnoklassniki.instance.isActivityRequestViral(requestCode) -> {
                 // process called viral widgets (suggest / invite / post)
-                Odnoklassniki.getInstance().onActivityResultResult(requestCode, resultCode, data, ContextOkListener(this,
-                                onSuccess = { _, json -> toast(json.toString()) },
-                                onError = { _, err -> toast(getString(R.string.error) + ": $err") }
-                        ))
+                Odnoklassniki.instance.onActivityResultResult(requestCode, resultCode, data, ContextOkListener(this,
+                        onSuccess = { _, json -> toast(json.toString()) },
+                        onError = { _, err -> toast(getString(R.string.error) + ": $err") }
+                ))
             }
             else -> super.onActivityResult(requestCode, resultCode, data)
         }

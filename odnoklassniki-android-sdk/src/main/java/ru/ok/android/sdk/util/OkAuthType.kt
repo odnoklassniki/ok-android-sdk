@@ -1,15 +1,15 @@
-package ru.ok.android.sdk.util;
+package ru.ok.android.sdk.util
 
-public enum OkAuthType {
+enum class OkAuthType {
 
     /**
-     * Only authorize via installed OK application's provided SSO<br/>
+     * Only authorize via installed OK application's provided SSO<br></br>
      * No login will be required if user is already logged in the OK application
      */
     NATIVE_SSO,
 
     /**
-     * Only authorize via client OAUTH operated via webview<br/>
+     * Only authorize via client OAUTH operated via webview<br></br>
      * Login is required in most cases other than repeated launch of the same application
      */
     WEBVIEW_OAUTH,
@@ -17,9 +17,6 @@ public enum OkAuthType {
     /**
      * Try SSO authorization, and if unavailable, switch to webview
      */
-    ANY,
-
-    //
-    ;
+    ANY
 
 }

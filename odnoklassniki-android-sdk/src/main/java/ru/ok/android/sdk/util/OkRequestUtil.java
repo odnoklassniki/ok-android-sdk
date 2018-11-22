@@ -110,7 +110,7 @@ public class OkRequestUtil {
         }
 
         String execute() throws IOException {
-            URL url = new URL(Odnoklassniki.getInstance().getApiBaseUrl() + "fb.do");
+            URL url = new URL(Odnoklassniki.Companion.getInstance().getApiBaseUrl() + "fb.do");
             final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setReadTimeout(timeout);
             connection.setConnectTimeout(timeout + 5000);
