@@ -46,13 +46,14 @@ class OkAuthActivity : Activity() {
         setContentView(R.layout.ok_auth_activity)
         prepareWebView()
 
-        val bundle = savedInstanceState ?: intent.extras
-        mAppId = bundle!!.getString(Shared.PARAM_CLIENT_ID)
+        val bundle = savedInstanceState ?: intent.extras ?: Bundle()
+        mAppId = bundle.getString(Shared.PARAM_CLIENT_ID)
         mAppKey = bundle.getString(Shared.PARAM_APP_KEY)
         mRedirectUri = bundle.getString(Shared.PARAM_REDIRECT_URI) ?: DEFAULT_REDIRECT_URI
         mScopes = bundle.getStringArray(Shared.PARAM_SCOPES) ?: arrayOf()
-        authType = bundle.getSerializable(Shared.PARAM_AUTH_TYPE) as OkAuthType
-        allowDebugOkSso = bundle.getBoolean(Shared.PARAM_ALLOW_DEBUG_OK_SSO)
+        authType = if (bundle.getSerializable(Shared.PARAM_AUTH_TYPE) is OkAuthType)
+            bundle.getSerializable(Shared.PARAM_AUTH_TYPE) as OkAuthType else OkAuthType.ANY
+        allowDebugOkSso = bundle.getBoolean(Shared.PARAM_ALLOW_DEBUG_OK_SSO, false)
         ssoAuthorizationStarted = bundle.getBoolean(SSO_STARTED, false)
 
         if (!ssoAuthorizationStarted) auth()
@@ -84,7 +85,7 @@ class OkAuthActivity : Activity() {
     }
 
     private fun auth() {
-        if (!hasAppInfo()) {
+        if (mAppId.isNullOrBlank() || mAppKey.isNullOrBlank()) {
             onFail(getString(R.string.no_application_data))
             return
         }
@@ -198,8 +199,6 @@ class OkAuthActivity : Activity() {
         setResult(Activity.RESULT_OK, result)
         finish()
     }
-
-    private fun hasAppInfo(): Boolean = mAppId != null && mAppKey != null
 
     private fun showAlert(message: String) {
         if (isFinishing) return
