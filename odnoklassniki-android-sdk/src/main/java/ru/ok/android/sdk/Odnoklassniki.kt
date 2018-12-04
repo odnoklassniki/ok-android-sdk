@@ -1,7 +1,6 @@
 package ru.ok.android.sdk
 
 import android.annotation.SuppressLint
-import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -17,18 +16,18 @@ import ru.ok.android.sdk.util.*
 import java.io.IOException
 import java.util.*
 
-open class Odnoklassniki protected constructor(private val context: Context, protected val appId: String, protected val appKey: String) {
+open class Odnoklassniki protected constructor(private val context: Context, private val appId: String, private val appKey: String) {
     var mAccessToken: String? = TokenStore.getStoredAccessToken(context)
     var mSessionSecretKey: String? = TokenStore.getStoredSessionSecretKey(context)
     var sdkToken: String? = TokenStore.getSdkToken(context)
-    var apiBaseUrl = Shared.REMOTE_API
-    var connectBaseUrl = Shared.REMOTE_WIDGETS
+    var apiBaseUrl = REMOTE_API
+    var connectBaseUrl = REMOTE_WIDGETS
     protected val okPayment: OkPayment = OkPayment(context)
 
     /** Set true if wish to support logging in via OK debug application installed instead of release one */
-    protected var allowDebugOkSso = false
+    internal var allowDebugOkSso = false
     /** Widgets ask user to retry the action on error (set false for instant error callback) */
-    protected var allowWidgetRetry = true
+    var allowWidgetRetry = true
 
     /**
      * Starts user authorization
@@ -41,17 +40,16 @@ open class Odnoklassniki protected constructor(private val context: Context, pro
     fun requestAuthorization(activity: Activity, @Nullable redirectUri: String,
                              authType: OkAuthType, vararg scopes: String) {
         val intent = Intent(activity, OkAuthActivity::class.java)
-        intent.putExtra(Shared.PARAM_CLIENT_ID, appId)
-        intent.putExtra(Shared.PARAM_APP_KEY, appKey)
-        intent.putExtra(Shared.PARAM_REDIRECT_URI, redirectUri)
-        intent.putExtra(Shared.PARAM_AUTH_TYPE, authType)
-        intent.putExtra(Shared.PARAM_SCOPES, scopes)
-        intent.putExtra(Shared.PARAM_ALLOW_DEBUG_OK_SSO, allowDebugOkSso)
-        activity.startActivityForResult(intent, Shared.OK_AUTH_REQUEST_CODE)
+        intent.putExtra(PARAM_CLIENT_ID, appId)
+        intent.putExtra(PARAM_APP_KEY, appKey)
+        intent.putExtra(PARAM_REDIRECT_URI, redirectUri)
+        intent.putExtra(PARAM_AUTH_TYPE, authType)
+        intent.putExtra(PARAM_SCOPES, scopes)
+        activity.startActivityForResult(intent, OK_AUTH_REQUEST_CODE)
     }
 
     fun isActivityRequestOAuth(requestCode: Int): Boolean {
-        return requestCode == Shared.OK_AUTH_REQUEST_CODE
+        return requestCode == OK_AUTH_REQUEST_CODE
     }
 
     fun onAuthActivityResult(request: Int, result: Int, @Nullable intent: Intent?, listener: OkListener): Boolean {
@@ -59,32 +57,32 @@ open class Odnoklassniki protected constructor(private val context: Context, pro
             if (intent == null) {
                 val json = JSONObject()
                 try {
-                    json.put(Shared.PARAM_ACTIVITY_RESULT, result)
+                    json.put(PARAM_ACTIVITY_RESULT, result)
                 } catch (ignore: JSONException) {
                 }
 
                 listener.onError(json.toString())
             } else {
-                val accessToken = intent.getStringExtra(Shared.PARAM_ACCESS_TOKEN)
+                val accessToken = intent.getStringExtra(PARAM_ACCESS_TOKEN)
                 if (accessToken == null) {
-                    val error = intent.getStringExtra(Shared.PARAM_ERROR)
+                    val error = intent.getStringExtra(PARAM_ERROR)
                     if (result == RESULT_CANCELLED && listener is OkAuthListener) {
                         listener.onCancel(error)
                     } else {
                         listener.onError(error)
                     }
                 } else {
-                    val sessionSecretKey = intent.getStringExtra(Shared.PARAM_SESSION_SECRET_KEY)
-                    val refreshToken = intent.getStringExtra(Shared.PARAM_REFRESH_TOKEN)
-                    val expiresIn = intent.getLongExtra(Shared.PARAM_EXPIRES_IN, 0)
+                    val sessionSecretKey = intent.getStringExtra(PARAM_SESSION_SECRET_KEY)
+                    val refreshToken = intent.getStringExtra(PARAM_REFRESH_TOKEN)
+                    val expiresIn = intent.getLongExtra(PARAM_EXPIRES_IN, 0)
                     mAccessToken = accessToken
                     mSessionSecretKey = sessionSecretKey ?: refreshToken
                     val json = JSONObject()
                     try {
-                        json.put(Shared.PARAM_ACCESS_TOKEN, mAccessToken)
-                        json.put(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey)
+                        json.put(PARAM_ACCESS_TOKEN, mAccessToken)
+                        json.put(PARAM_SESSION_SECRET_KEY, mSessionSecretKey)
                         if (expiresIn > 0) {
-                            json.put(Shared.PARAM_EXPIRES_IN, expiresIn)
+                            json.put(PARAM_EXPIRES_IN, expiresIn)
                         }
                     } catch (ignore: JSONException) {
                     }
@@ -99,11 +97,11 @@ open class Odnoklassniki protected constructor(private val context: Context, pro
         return false
     }
 
-    fun isActivityRequestPost(requestCode: Int): Boolean = requestCode == Shared.OK_POSTING_REQUEST_CODE
+    fun isActivityRequestPost(requestCode: Int): Boolean = requestCode == OK_POSTING_REQUEST_CODE
 
-    fun isActivityRequestInvite(requestCode: Int): Boolean = requestCode == Shared.OK_INVITING_REQUEST_CODE
+    fun isActivityRequestInvite(requestCode: Int): Boolean = requestCode == OK_INVITING_REQUEST_CODE
 
-    fun isActivityRequestSuggest(requestCode: Int): Boolean = requestCode == Shared.OK_SUGGESTING_REQUEST_CODE
+    fun isActivityRequestSuggest(requestCode: Int): Boolean = requestCode == OK_SUGGESTING_REQUEST_CODE
 
     fun isActivityRequestViral(request: Int): Boolean =
             isActivityRequestPost(request) || isActivityRequestInvite(request) || isActivityRequestSuggest(request)
@@ -113,19 +111,19 @@ open class Odnoklassniki protected constructor(private val context: Context, pro
             if (intent == null) {
                 val json = JSONObject()
                 try {
-                    json.put(Shared.PARAM_ACTIVITY_RESULT, result)
+                    json.put(PARAM_ACTIVITY_RESULT, result)
                 } catch (ignore: JSONException) {
                 }
 
                 listener.onError(json.toString())
             } else {
-                if (intent.hasExtra(Shared.PARAM_ERROR)) {
-                    listener.onError(intent.getStringExtra(Shared.PARAM_ERROR))
+                if (intent.hasExtra(PARAM_ERROR)) {
+                    listener.onError(intent.getStringExtra(PARAM_ERROR))
                 } else {
                     try {
-                        listener.onSuccess(JSONObject(intent.getStringExtra(Shared.PARAM_RESULT)))
+                        listener.onSuccess(JSONObject(intent.getStringExtra(PARAM_RESULT)))
                     } catch (e: JSONException) {
-                        listener.onError(intent.getStringExtra(Shared.PARAM_RESULT))
+                        listener.onError(intent.getStringExtra(PARAM_RESULT))
                     }
                 }
             }
@@ -136,13 +134,13 @@ open class Odnoklassniki protected constructor(private val context: Context, pro
 
     fun notifyFailed(listener: OkListener?, error: String?) {
         if (listener != null) {
-            OkThreadUtil.executeOnMain { listener.onError(error) }
+            Utils.executeOnMain(Runnable { listener.onError(error) })
         }
     }
 
     fun notifySuccess(listener: OkListener?, json: JSONObject) {
         if (listener != null) {
-            OkThreadUtil.executeOnMain { listener.onSuccess(json) }
+            Utils.executeOnMain(Runnable { listener.onSuccess(json) })
         }
     }
 
@@ -162,16 +160,15 @@ open class Odnoklassniki protected constructor(private val context: Context, pro
         if (TextUtils.isEmpty(method)) throw IllegalArgumentException(context.getString(R.string.api_method_cant_be_empty))
         val requestParams = TreeMap<String, String>()
         if (!params.isNullOrEmpty()) requestParams.putAll(params)
-        requestParams[Shared.PARAM_APP_KEY] = appKey
-        requestParams[Shared.PARAM_METHOD] = method
-        if (!mode.contains(OkRequestMode.NO_PLATFORM_REPORTING)) requestParams[Shared.PARAM_PLATFORM] = Shared.APP_PLATFORM
+        requestParams[PARAM_APP_KEY] = appKey
+        requestParams[PARAM_METHOD] = method
+        if (!mode.contains(OkRequestMode.NO_PLATFORM_REPORTING)) requestParams[PARAM_PLATFORM] = APP_PLATFORM
         if (mode.contains(OkRequestMode.SDK_SESSION)) {
-            if (sdkToken.isNullOrEmpty()) throw IllegalArgumentException("SDK token is required for method call, have not forget to call sdkInit?")
-            requestParams[Shared.PARAM_SDK_TOKEN] = sdkToken!!
+            requestParams["sdkToken"] = sdkToken ?: throw IllegalArgumentException("SDK token is required for method call, have not forget to call sdkInit?")
         }
         if (mode.contains(OkRequestMode.SIGNED) && !mAccessToken.isNullOrEmpty()) {
             signParameters(requestParams)
-            requestParams[Shared.PARAM_ACCESS_TOKEN] = mAccessToken!!
+            requestParams[PARAM_ACCESS_TOKEN] = mAccessToken!!
         }
         return OkRequestUtil.executeRequest(requestParams)
     }
@@ -210,8 +207,8 @@ open class Odnoklassniki protected constructor(private val context: Context, pro
             return true
         }
 
-        return if (json.has(Shared.PARAM_ERROR_MSG)) {
-            notifyFailed(listener, json.optString(Shared.PARAM_ERROR_MSG))
+        return if (json.has(PARAM_ERROR_MSG)) {
+            notifyFailed(listener, json.optString(PARAM_ERROR_MSG))
             false
         } else {
             notifySuccess(listener, json)
@@ -258,9 +255,9 @@ open class Odnoklassniki protected constructor(private val context: Context, pro
                 if (response != null && response.length > 2 && TextUtils.isDigitsOnly(response.substring(1, response.length - 1))) {
                     val json = JSONObject()
                     try {
-                        json.put(Shared.PARAM_ACCESS_TOKEN, mAccessToken)
-                        json.put(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey)
-                        json.put(Shared.PARAM_LOGGED_IN_USER, response)
+                        json.put(PARAM_ACCESS_TOKEN, mAccessToken)
+                        json.put(PARAM_SESSION_SECRET_KEY, mSessionSecretKey)
+                        json.put(PARAM_LOGGED_IN_USER, response)
                     } catch (ignore: JSONException) {
                     }
 
@@ -269,8 +266,8 @@ open class Odnoklassniki protected constructor(private val context: Context, pro
                 } else {
                     try {
                         val json = JSONObject(response)
-                        if (json.has(Shared.PARAM_ERROR_MSG)) {
-                            notifyFailed(listener, json.getString(Shared.PARAM_ERROR_MSG))
+                        if (json.has(PARAM_ERROR_MSG)) {
+                            notifyFailed(listener, json.getString(PARAM_ERROR_MSG))
                             return@Runnable
                         }
                     } catch (ignore: JSONException) {
@@ -293,14 +290,14 @@ open class Odnoklassniki protected constructor(private val context: Context, pro
      */
     fun performPosting(activity: Activity, attachment: String, userTextEnabled: Boolean, args: HashMap<String, String>? = null) {
         val intent = Intent(activity, OkPostingActivity::class.java)
-        intent.putExtra(Shared.PARAM_APP_ID, appId)
-        intent.putExtra(Shared.PARAM_ATTACHMENT, attachment)
-        intent.putExtra(Shared.PARAM_ACCESS_TOKEN, mAccessToken)
-        intent.putExtra(Shared.PARAM_WIDGET_ARGS, args)
-        intent.putExtra(Shared.PARAM_WIDGET_RETRY_ALLOWED, allowWidgetRetry)
-        intent.putExtra(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey)
-        intent.putExtra(Shared.PARAM_USER_TEXT_ENABLE, userTextEnabled)
-        activity.startActivityForResult(intent, Shared.OK_POSTING_REQUEST_CODE)
+        intent.putExtra(PARAM_APP_ID, appId)
+        intent.putExtra(PARAM_ATTACHMENT, attachment)
+        intent.putExtra(PARAM_ACCESS_TOKEN, mAccessToken)
+        intent.putExtra(PARAM_WIDGET_ARGS, args)
+        intent.putExtra(PARAM_WIDGET_RETRY_ALLOWED, allowWidgetRetry)
+        intent.putExtra(PARAM_SESSION_SECRET_KEY, mSessionSecretKey)
+        intent.putExtra(PARAM_USER_TEXT_ENABLE, userTextEnabled)
+        activity.startActivityForResult(intent, OK_POSTING_REQUEST_CODE)
     }
 
     /**
@@ -309,7 +306,7 @@ open class Odnoklassniki protected constructor(private val context: Context, pro
      * @param args widget arguments as specified in documentation
      */
     fun performAppInvite(activity: Activity, args: HashMap<String, String>? = null) =
-            performAppSuggestInvite(activity, OkAppInviteActivity::class.java, args, Shared.OK_INVITING_REQUEST_CODE)
+            performAppSuggestInvite(activity, OkAppInviteActivity::class.java, args, OK_INVITING_REQUEST_CODE)
 
     /**
      * Calls application suggest widget
@@ -317,16 +314,16 @@ open class Odnoklassniki protected constructor(private val context: Context, pro
      * @param args widget arguments as specified in documentation
      */
     fun performAppSuggest(activity: Activity, args: HashMap<String, String>? = null) =
-            performAppSuggestInvite(activity, OkAppSuggestActivity::class.java, args, Shared.OK_SUGGESTING_REQUEST_CODE)
+            performAppSuggestInvite(activity, OkAppSuggestActivity::class.java, args, OK_SUGGESTING_REQUEST_CODE)
 
     private fun performAppSuggestInvite(activity: Activity, clazz: Class<out AbstractWidgetActivity>,
                                         args: HashMap<String, String>?, requestCode: Int) {
         val intent = Intent(activity, clazz)
-        intent.putExtra(Shared.PARAM_APP_ID, appId)
-        intent.putExtra(Shared.PARAM_ACCESS_TOKEN, mAccessToken)
-        intent.putExtra(Shared.PARAM_WIDGET_RETRY_ALLOWED, allowWidgetRetry)
-        intent.putExtra(Shared.PARAM_SESSION_SECRET_KEY, mSessionSecretKey)
-        intent.putExtra(Shared.PARAM_WIDGET_ARGS, args)
+        intent.putExtra(PARAM_APP_ID, appId)
+        intent.putExtra(PARAM_ACCESS_TOKEN, mAccessToken)
+        intent.putExtra(PARAM_WIDGET_RETRY_ALLOWED, allowWidgetRetry)
+        intent.putExtra(PARAM_SESSION_SECRET_KEY, mSessionSecretKey)
+        intent.putExtra(PARAM_WIDGET_ARGS, args)
         activity.startActivityForResult(intent, requestCode)
     }
 
@@ -335,12 +332,13 @@ open class Odnoklassniki protected constructor(private val context: Context, pro
         params.forEach { sb.append(it.key).append('=').append(it.value) }
         val paramsString = sb.toString()
         val sig = Utils.toMD5(paramsString + mSessionSecretKey)
-        params[Shared.PARAM_SIGN] = sig
+        params[PARAM_SIGN] = sig
     }
 
     /**
      * Clears all token information from sdk and webView cookies
      */
+    @Suppress("DEPRECATION")
     fun clearTokens() {
         mAccessToken = null
         mSessionSecretKey = null
@@ -348,23 +346,11 @@ open class Odnoklassniki protected constructor(private val context: Context, pro
         TokenStore.removeStoredTokens(context)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            clearCookies()
+            CookieManager.getInstance().removeAllCookies(null)
         } else {
-            clearCookiesOld()
+            CookieSyncManager.createInstance(context)
+            CookieManager.getInstance().removeAllCookie()
         }
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private fun clearCookies() {
-        val cookieManager = CookieManager.getInstance()
-        cookieManager.removeAllCookies(null)
-    }
-
-    @Suppress("DEPRECATION")
-    private fun clearCookiesOld() {
-        CookieSyncManager.createInstance(context)
-        val cookieManager = CookieManager.getInstance()
-        cookieManager.removeAllCookie()
     }
 
     /**
@@ -396,10 +382,9 @@ open class Odnoklassniki protected constructor(private val context: Context, pro
          * Note that instance is only created once. Multiple calls to this method wont' create multiple instances of the object
          */
         @JvmStatic
-        fun createInstance(context: Context, appId: String?, appKey: String?): Odnoklassniki {
-            if (appId == null || appKey == null) {
-                throw IllegalArgumentException(context.getString(R.string.no_application_data))
-            }
+        fun createInstance(context: Context, appId: String, appKey: String): Odnoklassniki {
+            if (appId.isBlank() || appKey.isBlank()) throw IllegalArgumentException(context.getString(R.string.no_application_data))
+
             if (sOdnoklassniki == null) {
                 sOdnoklassniki = Odnoklassniki(context.applicationContext, appId, appKey)
             }

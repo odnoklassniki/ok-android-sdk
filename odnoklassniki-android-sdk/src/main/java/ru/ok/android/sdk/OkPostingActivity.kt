@@ -18,13 +18,12 @@ internal class OkPostingActivity : AbstractWidgetActivity() {
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.ok_posting_activity)
         prepareWebView()
 
         val bundle = intent.extras
         if (bundle != null) {
-            args["st.attachment"] = bundle.getString(Shared.PARAM_ATTACHMENT) ?: "{}"
-            args["st.utext"] = if (bundle.getBoolean(Shared.PARAM_USER_TEXT_ENABLE, false)) "on" else "off"
+            args["st.attachment"] = bundle.getString(PARAM_ATTACHMENT) ?: "{}"
+            args["st.utext"] = if (bundle.getBoolean(PARAM_USER_TEXT_ENABLE, false)) "on" else "off"
         }
 
         val url = prepareUrl(null)
@@ -42,14 +41,14 @@ internal class OkPostingActivity : AbstractWidgetActivity() {
         val resultIntent = Intent()
         try {
             val json = JSONObject(result)
-            val type = json.getString(Shared.PARAM_TYPE)
+            val type = json.getString(PARAM_TYPE)
             if ("error" == type) {
-                resultIntent.putExtra(Shared.PARAM_ERROR, json.getString(Shared.PARAM_MESSAGE))
+                resultIntent.putExtra(PARAM_ERROR, json.getString(PARAM_MESSAGE))
             } else {
-                resultIntent.putExtra(Shared.PARAM_RESULT, json.toString())
+                resultIntent.putExtra(PARAM_RESULT, json.toString())
             }
         } catch (e: JSONException) {
-            resultIntent.putExtra(Shared.PARAM_ERROR, result)
+            resultIntent.putExtra(PARAM_ERROR, result)
         }
         setResult(Activity.RESULT_OK, resultIntent)
         finish()

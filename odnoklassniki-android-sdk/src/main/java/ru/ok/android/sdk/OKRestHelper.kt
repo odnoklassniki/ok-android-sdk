@@ -3,7 +3,6 @@ package ru.ok.android.sdk
 import android.annotation.SuppressLint
 import java.io.IOException
 import java.util.EnumSet
-import java.util.HashMap
 
 import org.json.JSONException
 import org.json.JSONObject
@@ -13,9 +12,7 @@ import android.provider.Settings
 import androidx.annotation.NonNull
 import androidx.annotation.Nullable
 import android.telephony.TelephonyManager
-import android.text.TextUtils
 import android.util.Log
-import ru.ok.android.sdk.Shared.LOG_TAG
 import ru.ok.android.sdk.util.StatsBuilder
 
 class OKRestHelper(private val ok: Odnoklassniki) {
@@ -62,8 +59,8 @@ class OKRestHelper(private val ok: Odnoklassniki) {
     protected fun notifyListener(listener: OkListener, response: String?): Boolean {
         try {
             val json = JSONObject(response)
-            if (json.has(Shared.PARAM_ERROR_MSG)) {
-                val error = json.optString(Shared.PARAM_ERROR_MSG, json.toString())
+            if (json.has(PARAM_ERROR_MSG)) {
+                val error = json.optString(PARAM_ERROR_MSG, json.toString())
                 ok.notifyFailed(listener, error)
                 return false
             }
@@ -121,8 +118,8 @@ class OKRestHelper(private val ok: Odnoklassniki) {
             override fun onSuccess(json: JSONObject) {
                 val endpoints = json.optJSONObject("endpoints")
                 if (endpoints != null) {
-                    val widgetEndpoint = endpoints.optString("widgets", Shared.REMOTE_WIDGETS)
-                    val apiEndpoint = endpoints.optString("api", Shared.REMOTE_API)
+                    val widgetEndpoint = endpoints.optString("widgets", REMOTE_WIDGETS)
+                    val apiEndpoint = endpoints.optString("api", REMOTE_API)
                     ok.setBasePlatformUrls(apiEndpoint, widgetEndpoint)
                 }
                 ok.notifySuccess(listener, json)

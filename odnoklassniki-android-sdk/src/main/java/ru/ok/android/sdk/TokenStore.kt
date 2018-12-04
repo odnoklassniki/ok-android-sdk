@@ -2,7 +2,6 @@ package ru.ok.android.sdk
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.SharedPreferences.Editor
 
 private const val PREF_ACCESS_TOKEN = "acctkn"
 private const val PREF_SESSION_SECRET_KEY = "ssk"
@@ -37,7 +36,7 @@ internal object TokenStore {
             getPreferences(context).getString(PREF_SESSION_SECRET_KEY, null)
 
     private fun getPreferences(context: Context): SharedPreferences =
-            context.getSharedPreferences(Shared.PREFERENCES_FILE, Context.MODE_PRIVATE)
+            context.getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE)
 
     @JvmStatic
     fun storeSdkToken(context: Context, sdkToken: String) {

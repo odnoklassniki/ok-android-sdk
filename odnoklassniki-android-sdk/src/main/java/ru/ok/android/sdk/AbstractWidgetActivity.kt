@@ -24,6 +24,9 @@ internal abstract class AbstractWidgetActivity : Activity() {
     protected val args = HashMap<String, String>()
     protected var retryAllowed = true
 
+    protected open val layoutId: Int
+        get() = R.layout.oksdk_webview_activity
+
     protected abstract val widgetId: String
 
     protected val baseUrl: String
@@ -40,22 +43,23 @@ internal abstract class AbstractWidgetActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(layoutId)
 
         args.clear()
         val bundle = intent.extras
         if (bundle != null) {
-            mAppId = bundle.getString(Shared.PARAM_APP_ID)
-            mAccessToken = bundle.getString(Shared.PARAM_ACCESS_TOKEN)
-            mSessionSecretKey = bundle.getString(Shared.PARAM_SESSION_SECRET_KEY)
-            if (bundle.containsKey(Shared.PARAM_WIDGET_ARGS)) {
+            mAppId = bundle.getString(PARAM_APP_ID)
+            mAccessToken = bundle.getString(PARAM_ACCESS_TOKEN)
+            mSessionSecretKey = bundle.getString(PARAM_SESSION_SECRET_KEY)
+            if (bundle.containsKey(PARAM_WIDGET_ARGS)) {
                 @Suppress("UNCHECKED_CAST")
-                val map = bundle.getSerializable(Shared.PARAM_WIDGET_ARGS) as? HashMap<String, String>
+                val map = bundle.getSerializable(PARAM_WIDGET_ARGS) as? HashMap<String, String>
                 if (map != null) {
                     args.putAll(map)
                 }
             }
-            if (bundle.containsKey(Shared.PARAM_WIDGET_RETRY_ALLOWED)) {
-                retryAllowed = bundle.getBoolean(Shared.PARAM_WIDGET_RETRY_ALLOWED, true)
+            if (bundle.containsKey(PARAM_WIDGET_RETRY_ALLOWED)) {
+                retryAllowed = bundle.getBoolean(PARAM_WIDGET_RETRY_ALLOWED, true)
             }
         }
     }
@@ -97,7 +101,7 @@ internal abstract class AbstractWidgetActivity : Activity() {
         val sigSource = StringBuilder(200)
         val url = StringBuilder(baseUrl)
         for ((key, value) in params) {
-            if (Shared.WIDGET_SIGNED_ARGS.contains(key)) sigSource.append(key).append('=').append(value)
+            if (WIDGET_SIGNED_ARGS.contains(key)) sigSource.append(key).append('=').append(value)
             if (key != "st.return") url.append('&').append(key).append('=').append(OkRequestUtil.encode(value))
         }
         val signature = Utils.toMD5(sigSource.toString() + mSessionSecretKey)

@@ -23,13 +23,17 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 import ru.ok.android.sdk.Odnoklassniki;
-import ru.ok.android.sdk.Shared;
+import static ru.ok.android.sdk.SharedKt.LOG_TAG;
+import static ru.ok.android.sdk.SharedKt.PARAM_APP_KEY;
+import static ru.ok.android.sdk.SharedKt.PARAM_METHOD;
 
 public class OkRequestUtil {
+    private static final String ENCODING = "UTF-8";
+
     private static String inputStreamToString(final InputStream is, int contentLength) throws IOException {
         final StringBuilder sb = new StringBuilder(Math.max(contentLength, 128));
         final char[] buffer = new char[0x1000];
-        final Reader in = new InputStreamReader(is, Shared.ENCODING);
+        final Reader in = new InputStreamReader(is, ENCODING);
         try {
             int read;
             do {
@@ -79,18 +83,18 @@ public class OkRequestUtil {
 
     public static final String encode(String str) {
         try {
-            return URLEncoder.encode(str, Shared.ENCODING);
+            return URLEncoder.encode(str, ENCODING);
         } catch (UnsupportedEncodingException e) {
             //should never be called
-            Log.e(Shared.LOG_TAG, e.getLocalizedMessage());
+            Log.e(LOG_TAG, e.getLocalizedMessage());
         }
         return null;
     }
 
     public static final String executeRequest(Map<String, String> params) throws IOException {
         if (params == null ||
-                !params.containsKey(Shared.PARAM_METHOD) ||
-                !params.containsKey(Shared.PARAM_APP_KEY)) {
+                !params.containsKey(PARAM_METHOD) ||
+                !params.containsKey(PARAM_APP_KEY)) {
             return null;
         }
 
@@ -125,13 +129,13 @@ public class OkRequestUtil {
                 if (pair.first == null || pair.second == null) {
                     continue;
                 }
-                queryParameters.add(String.format("%s=%s", URLEncoder.encode(pair.first, Shared.ENCODING), URLEncoder.encode(pair.second, Shared.ENCODING)));
+                queryParameters.add(String.format("%s=%s", URLEncoder.encode(pair.first, ENCODING), URLEncoder.encode(pair.second, ENCODING)));
             }
 
             final String query = TextUtils.join("&", queryParameters);
             if (query.length() > 0) {
                 final OutputStream os = connection.getOutputStream();
-                final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, Shared.ENCODING));
+                final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, ENCODING));
 
                 writer.write(query);
                 writer.flush();

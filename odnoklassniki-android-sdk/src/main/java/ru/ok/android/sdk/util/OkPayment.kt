@@ -6,7 +6,6 @@ import java.util.ArrayList
 import java.util.Currency
 import java.util.EnumSet
 import java.util.HashMap
-import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
 
 import org.json.JSONArray
@@ -17,9 +16,10 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.AsyncTask
 import android.util.Log
+import ru.ok.android.sdk.API_ERR_PERMISSION_DENIED
+import ru.ok.android.sdk.LOG_TAG
 import ru.ok.android.sdk.Odnoklassniki
 import ru.ok.android.sdk.OkRequestMode
-import ru.ok.android.sdk.Shared
 
 private const val PREF_QUEUE_PACKAGE = "ok.payment"
 private const val PREF_QUEUE_KEY = "queue"
@@ -83,7 +83,7 @@ class OkPayment(context: Context) {
                 json.put(obj)
             }
         } catch (e: JSONException) {
-            Log.e(Shared.LOG_TAG, "Writing transactions queue: " + e.message, e)
+            Log.e(LOG_TAG, "Writing transactions queue: " + e.message, e)
         }
         return json.toString()
     }
@@ -103,7 +103,7 @@ class OkPayment(context: Context) {
                     transactions.add(trx)
                 }
             } catch (e: JSONException) {
-                Log.e(Shared.LOG_TAG, "Reading TRX queue from " + source + ": " + e.message, e)
+                Log.e(LOG_TAG, "Reading TRX queue from " + source + ": " + e.message, e)
             }
         }
         return transactions
@@ -128,20 +128,20 @@ class OkPayment(context: Context) {
                         persist()
                         continue
                     } else {
-                        Log.d(Shared.LOG_TAG, METHOD + " resulted with error: " + json.toString())
-                        if (json.optInt("error_code", 0) == Shared.ERROR_PERMISSION_DENIED) {
-                            Log.e(Shared.LOG_TAG, "Did not you forgot to ask moderators for permission to access $METHOD?")
+                        Log.d(LOG_TAG, METHOD + " resulted with error: " + json.toString())
+                        if (json.optInt("error_code", 0) == API_ERR_PERMISSION_DENIED) {
+                            Log.e(LOG_TAG, "Did not you forgot to ask moderators for permission to access $METHOD?")
                         }
                     }
                 } catch (e: IOException) {
-                    Log.d(Shared.LOG_TAG, "Failed to report TRX " + map + ", retry queued: " + e.message, e)
+                    Log.d(LOG_TAG, "Failed to report TRX " + map + ", retry queued: " + e.message, e)
                 } catch (e: JSONException) {
-                    Log.d(Shared.LOG_TAG, "Failed to report TRX " + map + ", retry queued: " + e.message, e)
+                    Log.d(LOG_TAG, "Failed to report TRX " + map + ", retry queued: " + e.message, e)
                 }
 
                 trx.tries++
                 if (trx.tries > MAX_RETRY_COUNT) {
-                    Log.w(Shared.LOG_TAG, "Reporting TRX " + map + " failed " + trx.tries + " times, cancelling")
+                    Log.w(LOG_TAG, "Reporting TRX " + map + " failed " + trx.tries + " times, cancelling")
                     queue.remove()
                     persist()
                     continue

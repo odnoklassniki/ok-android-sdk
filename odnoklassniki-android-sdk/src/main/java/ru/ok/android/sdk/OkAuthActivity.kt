@@ -15,6 +15,7 @@ import android.net.Uri
 import android.net.http.SslError
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.View
 import android.webkit.SslErrorHandler
 import android.webkit.WebView
 import ru.ok.android.sdk.util.OkAuthType
@@ -28,7 +29,7 @@ private const val DEFAULT_SECRET_KEY = "6C6B6397C2BCE5EDB7290039"
 private const val DEFAULT_REDIRECT_URI = "okauth://auth"
 private const val SSO_STARTED = "SSO_STARTED"
 
-private const val ODKL_APP_SIGNATURE = "3082025b308201c4a00302010202044f6760f9300d06092a864886f70d01010505003071310c300a06035504061303727573310c300a06035504081303737062310c300a0603550407130373706231163014060355040a130d4f646e6f6b6c6173736e696b6931143012060355040b130b6d6f62696c65207465616d311730150603550403130e416e647265792041736c616d6f763020170d3132303331393136333831375a180f32303636313232313136333831375a3071310c300a06035504061303727573310c300a06035504081303737062310c300a0603550407130373706231163014060355040a130d4f646e6f6b6c6173736e696b6931143012060355040b130b6d6f62696c65207465616d311730150603550403130e416e647265792041736c616d6f7630819f300d06092a864886f70d010101050003818d003081890281810080bea15bf578b898805dfd26346b2fbb662889cd6aba3f8e53b5b27c43a984eeec9a5d21f6f11667d987b77653f4a9651e20b94ff10594f76a93a6a36e6a42f4d851847cf1da8d61825ce020b7020cd1bc2eb435b0d416908be9393516ca1976ff736733c1d48ff17cd57f21ad49e05fc99384273efc5546e4e53c5e9f391c430203010001300d06092a864886f70d0101050500038181007d884df69a9748eabbdcfe55f07360433b23606d3b9d4bca03109c3ffb80fccb7809dfcbfd5a466347f1daf036fbbf1521754c2d1d999f9cbc66b884561e8201459aa414677e411e66360c3840ca4727da77f6f042f2c011464e99f34ba7df8b4bceb4fa8231f1d346f4063f7ba0e887918775879e619786728a8078c76647ed"
+private const val ODKL_APP_PUBLIC_SIGNATURE = "3082025b308201c4a00302010202044f6760f9300d06092a864886f70d01010505003071310c300a06035504061303727573310c300a06035504081303737062310c300a0603550407130373706231163014060355040a130d4f646e6f6b6c6173736e696b6931143012060355040b130b6d6f62696c65207465616d311730150603550403130e416e647265792041736c616d6f763020170d3132303331393136333831375a180f32303636313232313136333831375a3071310c300a06035504061303727573310c300a06035504081303737062310c300a0603550407130373706231163014060355040a130d4f646e6f6b6c6173736e696b6931143012060355040b130b6d6f62696c65207465616d311730150603550403130e416e647265792041736c616d6f7630819f300d06092a864886f70d010101050003818d003081890281810080bea15bf578b898805dfd26346b2fbb662889cd6aba3f8e53b5b27c43a984eeec9a5d21f6f11667d987b77653f4a9651e20b94ff10594f76a93a6a36e6a42f4d851847cf1da8d61825ce020b7020cd1bc2eb435b0d416908be9393516ca1976ff736733c1d48ff17cd57f21ad49e05fc99384273efc5546e4e53c5e9f391c430203010001300d06092a864886f70d0101050500038181007d884df69a9748eabbdcfe55f07360433b23606d3b9d4bca03109c3ffb80fccb7809dfcbfd5a466347f1daf036fbbf1521754c2d1d999f9cbc66b884561e8201459aa414677e411e66360c3840ca4727da77f6f042f2c011464e99f34ba7df8b4bceb4fa8231f1d346f4063f7ba0e887918775879e619786728a8078c76647ed"
 
 class OkAuthActivity : Activity() {
     private var mAppId: String? = null
@@ -36,24 +37,23 @@ class OkAuthActivity : Activity() {
     private var mRedirectUri: String? = null
     private lateinit var mScopes: Array<String>
     private var authType: OkAuthType? = null
-    private var allowDebugOkSso = false
     private var ssoAuthorizationStarted = false
 
     private lateinit var mWebView: WebView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.ok_auth_activity)
+        setContentView(R.layout.oksdk_webview_activity)
+        findViewById<View>(R.id.web_view).visibility = View.INVISIBLE
         prepareWebView()
 
         val bundle = savedInstanceState ?: intent.extras ?: Bundle()
-        mAppId = bundle.getString(Shared.PARAM_CLIENT_ID)
-        mAppKey = bundle.getString(Shared.PARAM_APP_KEY)
-        mRedirectUri = bundle.getString(Shared.PARAM_REDIRECT_URI) ?: DEFAULT_REDIRECT_URI
-        mScopes = bundle.getStringArray(Shared.PARAM_SCOPES) ?: arrayOf()
-        authType = if (bundle.getSerializable(Shared.PARAM_AUTH_TYPE) is OkAuthType)
-            bundle.getSerializable(Shared.PARAM_AUTH_TYPE) as OkAuthType else OkAuthType.ANY
-        allowDebugOkSso = bundle.getBoolean(Shared.PARAM_ALLOW_DEBUG_OK_SSO, false)
+        mAppId = bundle.getString(PARAM_CLIENT_ID)
+        mAppKey = bundle.getString(PARAM_APP_KEY)
+        mRedirectUri = bundle.getString(PARAM_REDIRECT_URI) ?: DEFAULT_REDIRECT_URI
+        mScopes = bundle.getStringArray(PARAM_SCOPES) ?: arrayOf()
+        authType = if (bundle.getSerializable(PARAM_AUTH_TYPE) is OkAuthType)
+            bundle.getSerializable(PARAM_AUTH_TYPE) as OkAuthType else OkAuthType.ANY
         ssoAuthorizationStarted = bundle.getBoolean(SSO_STARTED, false)
 
         if (!ssoAuthorizationStarted) auth()
@@ -68,11 +68,11 @@ class OkAuthActivity : Activity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putString(Shared.PARAM_CLIENT_ID, mAppId)
-        outState.putString(Shared.PARAM_APP_KEY, mAppKey)
-        outState.putString(Shared.PARAM_REDIRECT_URI, mRedirectUri)
-        outState.putStringArray(Shared.PARAM_SCOPES, mScopes)
-        outState.putSerializable(Shared.PARAM_AUTH_TYPE, authType)
+        outState.putString(PARAM_CLIENT_ID, mAppId)
+        outState.putString(PARAM_APP_KEY, mAppKey)
+        outState.putString(PARAM_REDIRECT_URI, mRedirectUri)
+        outState.putStringArray(PARAM_SCOPES, mScopes)
+        outState.putSerializable(PARAM_AUTH_TYPE, authType)
         outState.putBoolean(SSO_STARTED, ssoAuthorizationStarted)
     }
 
@@ -106,7 +106,7 @@ class OkAuthActivity : Activity() {
     }
 
     private fun buildOAuthUrl(): String {
-        var url = "${Odnoklassniki.instance.connectBaseUrl}oauth/authorize?client_id=$mAppId&response_type=token&redirect_uri=$mRedirectUri&layout=m&platform=${Shared.APP_PLATFORM}"
+        var url = "${Odnoklassniki.instance.connectBaseUrl}oauth/authorize?client_id=$mAppId&response_type=token&redirect_uri=$mRedirectUri&layout=m&platform=$APP_PLATFORM"
         if (!mScopes.isNullOrEmpty()) {
             val scopesString = URLEncoder.encode(mScopes.joinToString(separator = ";"))
             url = "$url&scope=$scopesString"
@@ -114,7 +114,7 @@ class OkAuthActivity : Activity() {
         return url
     }
 
-    private fun resolveOkAppLogin(intent: Intent, aPackage: String): ResolveInfo {
+    private fun resolveOkAppLogin(intent: Intent, aPackage: String): ResolveInfo? {
         intent.setClassName(aPackage, "ru.ok.android.external.LoginExternal")
         return packageManager.resolveActivity(intent, 0)
     }
@@ -122,47 +122,41 @@ class OkAuthActivity : Activity() {
     /* SSO AUTHORIZATION */
     @Suppress("DEPRECATION")
     private fun startSsoAuthorization(): Boolean {
-        var ssoAvailable = false
         val intent = Intent()
         var resolveInfo: ResolveInfo? = resolveOkAppLogin(intent, "ru.ok.android")
-        if (allowDebugOkSso && resolveInfo == null) {
+        if (resolveInfo == null && Odnoklassniki.instance.allowDebugOkSso) {
             resolveInfo = resolveOkAppLogin(intent, "ru.ok.android.debug")
         }
-        if (resolveInfo != null) {
-            try {
-                val packageInfo = packageManager.getPackageInfo(resolveInfo.activityInfo.packageName, PackageManager.GET_SIGNATURES)
-                if (packageInfo == null || packageInfo.versionCode < 120) {
-                    return false
-                }
-                ssoAvailable = packageInfo.signatures.any { it.toCharsString() == ODKL_APP_SIGNATURE }
-            } catch (ignore: NameNotFoundException) {
-            }
-
-            if (ssoAvailable) {
-                intent.putExtra(Shared.PARAM_CLIENT_ID, mAppId)
-                intent.putExtra(Shared.PARAM_CLIENT_SECRET, DEFAULT_SECRET_KEY)
-                intent.putExtra(Shared.PARAM_REDIRECT_URI, mRedirectUri)
-                if (mScopes.isNotEmpty()) intent.putExtra(Shared.PARAM_SCOPES, mScopes)
+        if (resolveInfo == null) return false
+        try {
+            val packageInfo = packageManager.getPackageInfo(resolveInfo.activityInfo.packageName, PackageManager.GET_SIGNATURES)
+            if (packageInfo == null || packageInfo.versionCode < 120) return false
+            if (packageInfo.signatures.any { it.toCharsString() == ODKL_APP_PUBLIC_SIGNATURE }) {
+                intent.putExtra(PARAM_CLIENT_ID, mAppId)
+                intent.putExtra(PARAM_CLIENT_SECRET, DEFAULT_SECRET_KEY)
+                intent.putExtra(PARAM_REDIRECT_URI, mRedirectUri)
+                if (mScopes.isNotEmpty()) intent.putExtra(PARAM_SCOPES, mScopes)
                 try {
                     startActivityForResult(intent, SSO_ACTIVITY_REQUEST_CODE)
-                } catch (exc: ActivityNotFoundException) {
-                    ssoAvailable = false
+                    return true
+                } catch (ignore: ActivityNotFoundException) {
                 }
             }
+        } catch (ignore: NameNotFoundException) {
         }
-        return ssoAvailable
+        return false
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == SSO_ACTIVITY_REQUEST_CODE) {
             ssoAuthorizationStarted = false
             var error = true
-            val errorStr = data?.getStringExtra(Shared.PARAM_ERROR) ?: ""
+            val errorStr = data?.getStringExtra(PARAM_ERROR) ?: ""
             if (resultCode == Activity.RESULT_OK) {
-                val accessToken = data?.getStringExtra(Shared.PARAM_ACCESS_TOKEN)
-                val sessionSecretKey = data?.getStringExtra(Shared.PARAM_SESSION_SECRET_KEY)
-                val refreshToken = data?.getStringExtra(Shared.PARAM_REFRESH_TOKEN)
-                val expiresIn = data?.getLongExtra(Shared.PARAM_EXPIRES_IN, 0) ?: 0
+                val accessToken = data?.getStringExtra(PARAM_ACCESS_TOKEN)
+                val sessionSecretKey = data?.getStringExtra(PARAM_SESSION_SECRET_KEY)
+                val refreshToken = data?.getStringExtra(PARAM_REFRESH_TOKEN)
+                val expiresIn = data?.getLongExtra(PARAM_EXPIRES_IN, 0) ?: 0
 
                 if (accessToken != null) {
                     error = false
@@ -176,26 +170,26 @@ class OkAuthActivity : Activity() {
         }
     }
 
-    protected fun onCancel(error: String) {
+    private fun onCancel(error: String) {
         val result = Intent()
-        result.putExtra(Shared.PARAM_ERROR, error)
+        result.putExtra(PARAM_ERROR, error)
         setResult(RESULT_CANCELLED, result)
         finish()
     }
 
-    protected fun onFail(error: String?) {
+    private fun onFail(error: String?) {
         val result = Intent()
-        result.putExtra(Shared.PARAM_ERROR, error)
+        result.putExtra(PARAM_ERROR, error)
         setResult(RESULT_FAILED, result)
         finish()
     }
 
-    protected fun onSuccess(accessToken: String, sessionSecretKey: String?, expiresIn: Long) {
+    private fun onSuccess(accessToken: String, sessionSecretKey: String?, expiresIn: Long) {
         TokenStore.store(this, accessToken, sessionSecretKey!!)
         val result = Intent()
-        result.putExtra(Shared.PARAM_ACCESS_TOKEN, accessToken)
-        result.putExtra(Shared.PARAM_SESSION_SECRET_KEY, sessionSecretKey)
-        if (expiresIn > 0) result.putExtra(Shared.PARAM_EXPIRES_IN, expiresIn)
+        result.putExtra(PARAM_ACCESS_TOKEN, accessToken)
+        result.putExtra(PARAM_SESSION_SECRET_KEY, sessionSecretKey)
+        if (expiresIn > 0) result.putExtra(PARAM_EXPIRES_IN, expiresIn)
         setResult(Activity.RESULT_OK, result)
         finish()
     }
@@ -232,10 +226,10 @@ class OkAuthActivity : Activity() {
                             val key = splitted[0]
                             val value = splitted[1]
                             when (key) {
-                                Shared.PARAM_ACCESS_TOKEN -> accessToken = value
-                                Shared.PARAM_SESSION_SECRET_KEY, Shared.PARAM_REFRESH_TOKEN -> sessionSecretKey = value
-                                Shared.PARAM_ERROR -> error = value
-                                Shared.PARAM_EXPIRES_IN -> expiresIn = if (value.isEmpty()) 0 else java.lang.Long.parseLong(value)
+                                PARAM_ACCESS_TOKEN -> accessToken = value
+                                PARAM_SESSION_SECRET_KEY, PARAM_REFRESH_TOKEN -> sessionSecretKey = value
+                                PARAM_ERROR -> error = value
+                                PARAM_EXPIRES_IN -> expiresIn = if (value.isEmpty()) 0 else java.lang.Long.parseLong(value)
                             }
                         }
                     }

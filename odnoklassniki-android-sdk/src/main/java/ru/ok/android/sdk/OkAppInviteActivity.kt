@@ -10,9 +10,6 @@ import org.json.JSONObject
 
 internal open class OkAppInviteActivity : AbstractWidgetActivity() {
 
-    protected open val activityView: Int
-        get() = R.layout.ok_app_invite_activity
-
     override val cancelledMessageId: Int
         get() = R.string.invite_canceled
 
@@ -21,7 +18,6 @@ internal open class OkAppInviteActivity : AbstractWidgetActivity() {
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(activityView)
         prepareWebView()
         val url = prepareUrl(null)
         findViewById<WebView>(R.id.web_view).loadUrl(url)
@@ -38,14 +34,14 @@ internal open class OkAppInviteActivity : AbstractWidgetActivity() {
         val resultIntent = Intent()
         try {
             val json = JSONObject(result)
-            val code = json.optString(Shared.PARAM_CODE)
+            val code = json.optString(PARAM_CODE)
             if ("ok".equals(code, ignoreCase = true)) {
-                resultIntent.putExtra(Shared.PARAM_RESULT, json.toString())
+                resultIntent.putExtra(PARAM_RESULT, json.toString())
             } else {
-                resultIntent.putExtra(Shared.PARAM_ERROR, json.getString(Shared.PARAM_MESSAGE))
+                resultIntent.putExtra(PARAM_ERROR, json.getString(PARAM_MESSAGE))
             }
         } catch (e: JSONException) {
-            resultIntent.putExtra(Shared.PARAM_ERROR, result)
+            resultIntent.putExtra(PARAM_ERROR, result)
         }
         setResult(Activity.RESULT_OK, resultIntent)
         finish()
