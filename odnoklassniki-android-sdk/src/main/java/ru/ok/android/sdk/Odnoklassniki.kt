@@ -16,7 +16,11 @@ import ru.ok.android.sdk.util.*
 import java.io.IOException
 import java.util.*
 
-open class Odnoklassniki protected constructor(private val context: Context, private val appId: String, private val appKey: String) {
+open class Odnoklassniki protected constructor(
+        private val context: Context,
+        private val appId: String,
+        private val appKey: String
+) {
     var mAccessToken: String? = TokenStore.getStoredAccessToken(context)
     var mSessionSecretKey: String? = TokenStore.getStoredSessionSecretKey(context)
     var sdkToken: String? = TokenStore.getSdkToken(context)
@@ -25,7 +29,7 @@ open class Odnoklassniki protected constructor(private val context: Context, pri
     protected val okPayment: OkPayment = OkPayment(context)
 
     /** Set true if wish to support logging in via OK debug application installed instead of release one */
-    internal var allowDebugOkSso = false
+    open val allowDebugOkSso = false
     /** Widgets ask user to retry the action on error (set false for instant error callback) */
     var allowWidgetRetry = true
 
@@ -156,7 +160,7 @@ open class Odnoklassniki protected constructor(private val context: Context, pri
      * @see OkRequestMode.DEFAULT OkRequestMode.DEFAULT default request mode
      */
     @Throws(IOException::class)
-    fun request(method: String, params: Map<String, String>? = null, mode: EnumSet<OkRequestMode> = OkRequestMode.DEFAULT): String? {
+    fun request(method: String, params: Map<String, String>? = null, mode: Set<OkRequestMode> = OkRequestMode.DEFAULT): String? {
         if (TextUtils.isEmpty(method)) throw IllegalArgumentException(context.getString(R.string.api_method_cant_be_empty))
         val requestParams = TreeMap<String, String>()
         if (!params.isNullOrEmpty()) requestParams.putAll(params)
@@ -164,7 +168,8 @@ open class Odnoklassniki protected constructor(private val context: Context, pri
         requestParams[PARAM_METHOD] = method
         if (!mode.contains(OkRequestMode.NO_PLATFORM_REPORTING)) requestParams[PARAM_PLATFORM] = APP_PLATFORM
         if (mode.contains(OkRequestMode.SDK_SESSION)) {
-            requestParams["sdkToken"] = sdkToken ?: throw IllegalArgumentException("SDK token is required for method call, have not forget to call sdkInit?")
+            requestParams["sdkToken"] = sdkToken
+                    ?: throw IllegalArgumentException("SDK token is required for method call, have not forget to call sdkInit?")
         }
         if (mode.contains(OkRequestMode.SIGNED) && !mAccessToken.isNullOrEmpty()) {
             signParameters(requestParams)
@@ -189,7 +194,7 @@ open class Odnoklassniki protected constructor(private val context: Context, pri
      * @return true if method succeeded
      * @see OkRequestMode.DEFAULT OkRequestMode.DEFAULT default request mode
      */
-    fun request(method: String, params: Map<String, String>? = null, mode: EnumSet<OkRequestMode> = OkRequestMode.DEFAULT, listener: OkListener): Boolean {
+    fun request(method: String, params: Map<String, String>? = null, mode: Set<OkRequestMode> = OkRequestMode.DEFAULT, listener: OkListener): Boolean {
         val response: String?
         try {
             response = request(method, params, mode)
@@ -227,7 +232,7 @@ open class Odnoklassniki protected constructor(private val context: Context, pri
      * @param listener listener
      * @return AsyncTask background task for the request
      */
-    fun requestAsync(method: String, params: Map<String, String>? = null, mode: EnumSet<OkRequestMode> = OkRequestMode.DEFAULT, listener: OkListener): AsyncTask<Void, Void, Void> {
+    fun requestAsync(method: String, params: Map<String, String>? = null, mode: Set<OkRequestMode> = OkRequestMode.DEFAULT, listener: OkListener): AsyncTask<Void, Void, Void> {
         @SuppressLint("StaticFieldLeak")
         val task = object : AsyncTask<Void, Void, Void>() {
             override fun doInBackground(vararg parameters: Void): Void? {
@@ -378,7 +383,7 @@ open class Odnoklassniki protected constructor(private val context: Context, pri
         protected var sOdnoklassniki: Odnoklassniki? = null
 
         /**
-         * This method is required to be called before [Odnoklassniki.getInstance]<br></br>
+         * This method is required to be called before [Odnoklassniki.instance]<br></br>
          * Note that instance is only created once. Multiple calls to this method wont' create multiple instances of the object
          */
         @JvmStatic
@@ -389,6 +394,10 @@ open class Odnoklassniki protected constructor(private val context: Context, pri
                 sOdnoklassniki = Odnoklassniki(context.applicationContext, appId, appKey)
             }
             return sOdnoklassniki!!
+        }
+
+        fun registerInstance(instance: Odnoklassniki) {
+            sOdnoklassniki = instance
         }
 
         /**

@@ -2,7 +2,6 @@ package ru.ok.android.sdk
 
 import android.content.Context
 import android.net.http.SslError
-import android.os.Build
 import android.view.View
 import android.webkit.SslErrorHandler
 import android.webkit.WebView
@@ -49,10 +48,9 @@ internal open class OkWebViewClient(private val mContext: Context) : WebViewClie
             SslError.SSL_IDMISMATCH -> getString(R.string.error_ssl_id_mismatch)
             SslError.SSL_NOTYETVALID -> getString(R.string.error_ssl_not_yet_valid)
             SslError.SSL_UNTRUSTED -> getString(R.string.error_ssl_untrusted)
-            else -> {
-                return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH && errorCode == SslError.SSL_DATE_INVALID) {
-                    getString(R.string.error_ssl_date_invalid)
-                } else getString(R.string.error_unknown)
+            else -> return when (errorCode) {
+                SslError.SSL_DATE_INVALID -> getString(R.string.error_ssl_date_invalid)
+                else -> getString(R.string.error_unknown)
             }
         }
     }

@@ -35,6 +35,7 @@ object Utils {
      * WARNING: This requires dependency on 'com.google.android.gms:play-services-ads:8.4.0' to work properly<br></br>
      * Consider caching the returning value if the result is needed frequently
      */
+    @Suppress("unused")
     fun getAdvertisingId(context: Context, fallbackToAndroidId: Boolean = false): String {
         var advId: String? = null
 

@@ -5,15 +5,15 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 dependencies {
-    implementation 'androidx.annotation:annotation:1.0.0'
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.annotation:annotation:1.0.2'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
 android {
     compileSdkVersion rootProject.property("android.compile.sdk.version") as int
     buildToolsVersion rootProject.property("android.build.tools.version")
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 16
         targetSdkVersion 28
     }
     productFlavors {

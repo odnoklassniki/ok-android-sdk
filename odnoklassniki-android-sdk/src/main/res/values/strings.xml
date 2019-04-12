@@ -3,7 +3,6 @@
     <string name="no_application_data">No application data (id or public key)</string>
     <string name="no_valid_token">No valid token</string>
     <string name="api_method_cant_be_empty">Api method can\'t be empty or null</string>
-    <string name="friend_uids_cant_be_empty">You must provide at least one valid friend UID</string>
     <string name="no_ok_application_installed">OK application is required to be installed for SSO authorization.</string>
 
     <string name="retry">Retry</string>

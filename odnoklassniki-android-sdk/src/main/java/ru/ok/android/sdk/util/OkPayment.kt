@@ -128,7 +128,7 @@ class OkPayment(context: Context) {
                         persist()
                         continue
                     } else {
-                        Log.d(LOG_TAG, METHOD + " resulted with error: " + json.toString())
+                        Log.d(LOG_TAG, "$METHOD resulted with error: $json")
                         if (json.optInt("error_code", 0) == API_ERR_PERMISSION_DENIED) {
                             Log.e(LOG_TAG, "Did not you forgot to ask moderators for permission to access $METHOD?")
                         }

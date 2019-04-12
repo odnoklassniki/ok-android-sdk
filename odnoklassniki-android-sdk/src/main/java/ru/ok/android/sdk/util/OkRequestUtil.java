@@ -59,10 +59,9 @@ public class OkRequestUtil {
     }
 
     /**
-     * @param url
      * @return bundle that contains key-value entries of the url query and fragment.
      */
-    public static final Bundle getUrlParameters(final String url) {
+    public static Bundle getUrlParameters(final String url) {
         final Bundle bundle = new Bundle();
         final String[] separated = url.split("\\?");
         if (separated.length > 1) {
@@ -81,7 +80,7 @@ public class OkRequestUtil {
         return bundle;
     }
 
-    public static final String encode(String str) {
+    public static String encode(String str) {
         try {
             return URLEncoder.encode(str, ENCODING);
         } catch (UnsupportedEncodingException e) {
@@ -91,7 +90,7 @@ public class OkRequestUtil {
         return null;
     }
 
-    public static final String executeRequest(Map<String, String> params) throws IOException {
+    public static String executeRequest(Map<String, String> params) throws IOException {
         if (params == null ||
                 !params.containsKey(PARAM_METHOD) ||
                 !params.containsKey(PARAM_APP_KEY)) {
@@ -104,10 +103,9 @@ public class OkRequestUtil {
     private static class Request {
         private int timeout = 3000;
 
-        private List<Pair<String, String>> params = null;
+        private final List<Pair<String, String>> params = new ArrayList<>();
 
         Request(Map<String, String> params) {
-            this.params = new ArrayList<>();
             for (Entry<String, String> pair : params.entrySet()) {
                 this.params.add(new Pair<>(pair.getKey(), pair.getValue()));
             }

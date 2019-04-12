@@ -42,7 +42,7 @@ class MainActivity : Activity() {
 
         sdk_get_currentuser.setOnClickListener {
             ok.requestAsync("users.getCurrentUser", listener = ContextOkListener(this,
-                    onSuccess = { _, json -> toast("Get current user result: " + json.toString()) },
+                    onSuccess = { _, json -> toast("Get current user result: $json") },
                     onError = { _, err -> toast("Get current user failed: $err") }
             ))
         }
@@ -78,6 +78,10 @@ class MainActivity : Activity() {
         }
 
         ok = Odnoklassniki.createInstance(this, APP_ID, APP_KEY)
+        ok = object : Odnoklassniki(applicationContext, APP_ID, APP_KEY) {
+            override val allowDebugOkSso = BuildConfig.DEBUG
+        }
+        Odnoklassniki.registerInstance(ok)
         ok.checkValidTokens(ContextOkListener(this,
                 onSuccess = { _, _ -> showAppData() },
                 onError = { _, err -> toast(getString(R.string.error) + ": $err") }

@@ -26,6 +26,6 @@ enum class OkRequestMode {
          * Default request modes
          */
         @JvmStatic
-        val DEFAULT = EnumSet.of(OkRequestMode.SIGNED)
+        val DEFAULT: Set<OkRequestMode> = EnumSet.of(OkRequestMode.SIGNED)
     }
 }
