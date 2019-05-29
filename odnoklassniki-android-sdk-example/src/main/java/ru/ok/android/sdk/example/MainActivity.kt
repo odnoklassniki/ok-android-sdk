@@ -77,11 +77,7 @@ class MainActivity : Activity() {
             ok.reportPayment(Math.random().toString() + "", "6.28", Currency.getInstance("EUR"))
         }
 
-        ok = Odnoklassniki.createInstance(this, APP_ID, APP_KEY)
-        ok = object : Odnoklassniki(applicationContext, APP_ID, APP_KEY) {
-            override val allowDebugOkSso = BuildConfig.DEBUG
-        }
-        Odnoklassniki.registerInstance(ok)
+        ok = Odnoklassniki(this, APP_ID, APP_KEY)
         ok.checkValidTokens(ContextOkListener(this,
                 onSuccess = { _, _ -> showAppData() },
                 onError = { _, err -> toast(getString(R.string.error) + ": $err") }
@@ -90,9 +86,9 @@ class MainActivity : Activity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
         when {
-            Odnoklassniki.instance.isActivityRequestOAuth(requestCode) -> {
+            Odnoklassniki.of(this).isActivityRequestOAuth(requestCode) -> {
                 // process OAUTH sign-in response
-                Odnoklassniki.instance.onAuthActivityResult(requestCode, resultCode, data, ContextOkListener(this,
+                Odnoklassniki.of(this).onAuthActivityResult(requestCode, resultCode, data, ContextOkListener(this,
                         onSuccess = { _, json ->
                             try {
                                 toast(String.format("access_token: %s", json.getString("access_token")))
@@ -105,9 +101,9 @@ class MainActivity : Activity() {
                         onCancel = { _, err -> toast(getString(R.string.auth_cancelled) + ": $err") }
                 ))
             }
-            Odnoklassniki.instance.isActivityRequestViral(requestCode) -> {
+            Odnoklassniki.of(this).isActivityRequestViral(requestCode) -> {
                 // process called viral widgets (suggest / invite / post)
-                Odnoklassniki.instance.onActivityResultResult(requestCode, resultCode, data, ContextOkListener(this,
+                Odnoklassniki.of(this).onActivityResultResult(requestCode, resultCode, data, ContextOkListener(this,
                         onSuccess = { _, json -> toast(json.toString()) },
                         onError = { _, err -> toast(getString(R.string.error) + ": $err") }
                 ))

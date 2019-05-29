@@ -22,10 +22,10 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
-import ru.ok.android.sdk.Odnoklassniki;
 import static ru.ok.android.sdk.SharedKt.LOG_TAG;
 import static ru.ok.android.sdk.SharedKt.PARAM_APP_KEY;
 import static ru.ok.android.sdk.SharedKt.PARAM_METHOD;
+import static ru.ok.android.sdk.SharedKt.REMOTE_API;
 
 public class OkRequestUtil {
     private static final String ENCODING = "UTF-8";
@@ -112,7 +112,7 @@ public class OkRequestUtil {
         }
 
         String execute() throws IOException {
-            URL url = new URL(Odnoklassniki.Companion.getInstance().getApiBaseUrl() + "fb.do");
+            URL url = new URL(REMOTE_API + "fb.do");
             final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setReadTimeout(timeout);
             connection.setConnectTimeout(timeout + 5000);

@@ -10,7 +10,6 @@ import org.json.JSONObject
 import android.content.Context
 import android.provider.Settings
 import androidx.annotation.NonNull
-import androidx.annotation.Nullable
 import android.telephony.TelephonyManager
 import android.util.Log
 import ru.ok.android.sdk.util.StatsBuilder
@@ -105,29 +104,5 @@ class OKRestHelper(private val ok: Odnoklassniki) {
         val params = mapOf("stats" to builder.build().toString())
         val response = ok.request("sdk.reportStats", params, OkRequestMode.DEFAULT)
         notifyListener(listener, response)
-    }
-
-    /**
-     * Retrieves endpoints for OK platform (async).
-     * On success, sets them via [Odnoklassniki.setBasePlatformUrls]
-     *
-     * @param listener callback
-     */
-    fun sdkGetEndpoints(@Nullable listener: OkListener) {
-        ok.requestAsync("sdk.getEndpoints", null, EnumSet.of(OkRequestMode.SIGNED), object : OkListener {
-            override fun onSuccess(json: JSONObject) {
-                val endpoints = json.optJSONObject("endpoints")
-                if (endpoints != null) {
-                    val widgetEndpoint = endpoints.optString("widgets", REMOTE_WIDGETS)
-                    val apiEndpoint = endpoints.optString("api", REMOTE_API)
-                    ok.setBasePlatformUrls(apiEndpoint, widgetEndpoint)
-                }
-                ok.notifySuccess(listener, json)
-            }
-
-            override fun onError(error: String?) {
-                ok.notifyFailed(listener, error)
-            }
-        })
     }
 }

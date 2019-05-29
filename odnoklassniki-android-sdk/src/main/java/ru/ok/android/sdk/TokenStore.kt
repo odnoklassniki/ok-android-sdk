@@ -6,6 +6,8 @@ import android.content.SharedPreferences
 private const val PREF_ACCESS_TOKEN = "acctkn"
 private const val PREF_SESSION_SECRET_KEY = "ssk"
 private const val PREF_SDK_TOKEN = "ok_sdk_tkn"
+private const val PREF_APP_ID = "app_id"
+private const val PREF_APP_KEY = "app_key"
 
 internal object TokenStore {
 
@@ -48,4 +50,16 @@ internal object TokenStore {
     @JvmStatic
     fun getSdkToken(context: Context): String? =
             getPreferences(context).getString(PREF_SDK_TOKEN, null)
+
+    fun getAppInfo(context: Context): Pair<String?, String?> = getPreferences(context).let {
+        Pair(it.getString(PREF_APP_ID, null), it.getString(PREF_APP_KEY, null))
+    }
+
+    fun setAppInfo(context: Context, id: String, key: String) {
+        getPreferences(context).edit()
+                .putString(PREF_APP_ID, id)
+                .putString(PREF_APP_KEY, key)
+                .apply()
+    }
+
 }
