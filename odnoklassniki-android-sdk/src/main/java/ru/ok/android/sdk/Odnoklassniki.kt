@@ -423,12 +423,7 @@ open class Odnoklassniki(
         }
 
         fun of(context: Context): Odnoklassniki {
-            var instance = sOdnoklassniki
-            if (instance != null) return instance
-
-            instance = Odnoklassniki(context)
-            sOdnoklassniki = instance
-            return instance
+            return sOdnoklassniki ?: Odnoklassniki(context)
         }
     }
 
