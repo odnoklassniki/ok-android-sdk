@@ -30,7 +30,7 @@ internal abstract class AbstractWidgetActivity : Activity() {
     protected abstract val widgetId: String
 
     protected val baseUrl: String
-        get() = Odnoklassniki.instance.connectBaseUrl +
+        get() = REMOTE_WIDGETS +
                 "dk?st.cmd=" + widgetId +
                 "&st.access_token=" + mAccessToken +
                 "&st.app=" + mAppId +

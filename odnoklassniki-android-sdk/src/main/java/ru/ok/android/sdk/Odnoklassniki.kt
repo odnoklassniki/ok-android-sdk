@@ -16,22 +16,45 @@ import ru.ok.android.sdk.util.*
 import java.io.IOException
 import java.util.*
 
-open class Odnoklassniki protected constructor(
+open class Odnoklassniki(
         private val context: Context,
-        private val appId: String,
-        private val appKey: String
+        id: String? = null,
+        key: String? = null
 ) {
-    var mAccessToken: String? = TokenStore.getStoredAccessToken(context)
-    var mSessionSecretKey: String? = TokenStore.getStoredSessionSecretKey(context)
-    var sdkToken: String? = TokenStore.getSdkToken(context)
-    var apiBaseUrl = REMOTE_API
-    var connectBaseUrl = REMOTE_WIDGETS
-    protected val okPayment: OkPayment = OkPayment(context)
+    var mAccessToken: String?
+    var mSessionSecretKey: String?
+    var sdkToken: String?
+    protected val okPayment: OkPayment
 
     /** Set true if wish to support logging in via OK debug application installed instead of release one */
     open val allowDebugOkSso = false
     /** Widgets ask user to retry the action on error (set false for instant error callback) */
     var allowWidgetRetry = true
+
+    protected val appId: String
+    protected val appKey: String
+
+    init {
+        if (id == null || key == null) {
+            val (storedId, storedKey) = TokenStore.getAppInfo(context)
+            if (storedId == null || storedKey == null) {
+                throw IllegalStateException("No instance available. Odnoklassniki.createInstance() needs to be called")
+            }
+            appId = storedId
+            appKey = storedKey
+        } else {
+            appId = id
+            appKey = key
+            TokenStore.setAppInfo(context, id, key)
+        }
+
+        mAccessToken = TokenStore.getStoredAccessToken(context)
+        mSessionSecretKey = TokenStore.getStoredSessionSecretKey(context)
+        sdkToken = TokenStore.getSdkToken(context)
+        okPayment = OkPayment(context)
+
+        sOdnoklassniki = this
+    }
 
     /**
      * Starts user authorization
@@ -365,50 +388,31 @@ open class Odnoklassniki protected constructor(
 
     private fun onValidSessionAppeared() = okPayment.init()
 
-    /**
-     * Sets the base urls for communicating with OK platform
-     *
-     * @param apiBaseUrl     api server url
-     * @param connectBaseUrl connect (widgets) server url
-     * @see OKRestHelper.sdkGetEndpoints
-     */
-    fun setBasePlatformUrls(apiBaseUrl: String, connectBaseUrl: String) {
-        this.apiBaseUrl = apiBaseUrl
-        this.connectBaseUrl = connectBaseUrl
-    }
-
     companion object {
         @SuppressLint("StaticFieldLeak")
         @JvmStatic
+        @Volatile
         protected var sOdnoklassniki: Odnoklassniki? = null
 
         /**
          * This method is required to be called before [Odnoklassniki.instance]<br></br>
-         * Note that instance is only created once. Multiple calls to this method wont' create multiple instances of the object
          */
         @JvmStatic
         fun createInstance(context: Context, appId: String, appKey: String): Odnoklassniki {
             if (appId.isBlank() || appKey.isBlank()) throw IllegalArgumentException(context.getString(R.string.no_application_data))
-
-            if (sOdnoklassniki == null) {
-                sOdnoklassniki = Odnoklassniki(context.applicationContext, appId, appKey)
-            }
-            return sOdnoklassniki!!
-        }
-
-        fun registerInstance(instance: Odnoklassniki) {
-            sOdnoklassniki = instance
+            return Odnoklassniki(context.applicationContext, appId, appKey)
         }
 
         /**
          * Get previously created instance.<br></br>
          * You must always call [Odnoklassniki.createInstance] before calling this method, or [IllegalStateException] will be thrown
          */
+        @Deprecated("Use of(context) for safe access")
         @JvmStatic
         val instance: Odnoklassniki
             get() {
                 if (sOdnoklassniki == null) {
-                    throw IllegalStateException("No instance available. Odnoklassniki.createInstance() needs to be called before Odnoklassniki.getInstance()")
+                    throw IllegalStateException("No instance available. Odnoklassniki.createInstance() needs to be called before Odnoklassniki.of()")
                 }
                 return sOdnoklassniki!!
             }
@@ -418,6 +422,9 @@ open class Odnoklassniki protected constructor(
             return sOdnoklassniki != null
         }
 
+        fun of(context: Context): Odnoklassniki {
+            return sOdnoklassniki ?: Odnoklassniki(context)
+        }
     }
 
     private fun toJson(key: String, value: String?): JSONObject =

@@ -30,7 +30,7 @@ private const val TRIES = "tries"
 private const val MAX_RETRY_COUNT = 20
 private const val METHOD = "sdk.reportPayment"
 
-class OkPayment(context: Context) {
+class OkPayment(val context: Context) {
     private val queue = ConcurrentLinkedQueue<Transaction>()
     private val prefs: SharedPreferences = context.getSharedPreferences(PREF_QUEUE_PACKAGE, Context.MODE_PRIVATE)
 
@@ -121,7 +121,7 @@ class OkPayment(context: Context) {
                 map["currency"] = trx.currency
 
                 try {
-                    val response = Odnoklassniki.instance.request(METHOD, map, EnumSet.of(OkRequestMode.SIGNED))
+                    val response = Odnoklassniki.of(context).request(METHOD, map, EnumSet.of(OkRequestMode.SIGNED))
                     val json = JSONObject(response)
                     if (json.optBoolean("result")) {
                         queue.remove()

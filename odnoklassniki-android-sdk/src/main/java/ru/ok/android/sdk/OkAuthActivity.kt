@@ -106,7 +106,7 @@ class OkAuthActivity : Activity() {
     }
 
     private fun buildOAuthUrl(): String {
-        var url = "${Odnoklassniki.instance.connectBaseUrl}oauth/authorize?client_id=$mAppId&response_type=token&redirect_uri=$mRedirectUri&layout=m&platform=$APP_PLATFORM"
+        var url = "${REMOTE_WIDGETS}oauth/authorize?client_id=$mAppId&response_type=token&redirect_uri=$mRedirectUri&layout=m&platform=$APP_PLATFORM"
         if (!mScopes.isNullOrEmpty()) {
             val scopesString = URLEncoder.encode(mScopes.joinToString(separator = ";"))
             url = "$url&scope=$scopesString"
@@ -124,7 +124,7 @@ class OkAuthActivity : Activity() {
     private fun startSsoAuthorization(): Boolean {
         val intent = Intent()
         var resolveInfo: ResolveInfo? = resolveOkAppLogin(intent, "ru.ok.android")
-        if (resolveInfo == null && Odnoklassniki.instance.allowDebugOkSso) {
+        if (resolveInfo == null && Odnoklassniki.of(this).allowDebugOkSso) {
             resolveInfo = resolveOkAppLogin(intent, "ru.ok.android.debug")
         }
         if (resolveInfo == null) return false
