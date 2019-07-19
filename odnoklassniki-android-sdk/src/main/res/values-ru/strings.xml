@@ -3,7 +3,7 @@
     <string name="no_application_data">Отсутствует id или публичный ключ приложения</string>
     <string name="no_valid_token">Нет действующего токена</string>
     <string name="api_method_cant_be_empty">Метод api не может быть пустым или null</string>
-    <string name="no_ok_application_installed">Необходимо наличие приложения Одноклассники для проведения SSO авторизации.</string>
+    <string name="no_ok_application_installed">Необходимо наличии приложения Одноклассники для проведения SSO авторизации.</string>
 
     <string name="retry">Повторить</string>
     <string name="cancel">Отмена</string>
