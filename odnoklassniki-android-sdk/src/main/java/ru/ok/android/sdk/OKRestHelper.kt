@@ -9,7 +9,6 @@ import org.json.JSONObject
 
 import android.content.Context
 import android.provider.Settings
-import androidx.annotation.NonNull
 import android.telephony.TelephonyManager
 import android.util.Log
 import ru.ok.android.sdk.util.StatsBuilder
@@ -78,7 +77,6 @@ class OKRestHelper(private val ok: Odnoklassniki) {
     }
 
     @SuppressLint("MissingPermission", "HardwareIds")
-    @NonNull
     protected fun getDeviceId(context: Context): String {
         val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager?
         var id1: String? = null

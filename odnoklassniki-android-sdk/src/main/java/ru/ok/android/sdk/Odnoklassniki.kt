@@ -9,7 +9,6 @@ import android.os.Build
 import android.text.TextUtils
 import android.webkit.CookieManager
 import android.webkit.CookieSyncManager
-import androidx.annotation.Nullable
 import org.json.JSONException
 import org.json.JSONObject
 import ru.ok.android.sdk.util.*
@@ -64,7 +63,7 @@ open class Odnoklassniki(
      * @param scopes      [OkScope] - application request permissions as per [OkScope].
      * @see OkAuthType
      */
-    fun requestAuthorization(activity: Activity, @Nullable redirectUri: String,
+    fun requestAuthorization(activity: Activity, redirectUri: String?,
                              authType: OkAuthType, vararg scopes: String) {
         val intent = Intent(activity, OkAuthActivity::class.java)
         intent.putExtra(PARAM_CLIENT_ID, appId)
@@ -79,7 +78,7 @@ open class Odnoklassniki(
         return requestCode == OK_AUTH_REQUEST_CODE
     }
 
-    fun onAuthActivityResult(request: Int, result: Int, @Nullable intent: Intent?, listener: OkListener): Boolean {
+    fun onAuthActivityResult(request: Int, result: Int, intent: Intent?, listener: OkListener): Boolean {
         if (isActivityRequestOAuth(request)) {
             if (intent == null) {
                 val json = JSONObject()
@@ -133,7 +132,7 @@ open class Odnoklassniki(
     fun isActivityRequestViral(request: Int): Boolean =
             isActivityRequestPost(request) || isActivityRequestInvite(request) || isActivityRequestSuggest(request)
 
-    fun onActivityResultResult(request: Int, result: Int, @Nullable intent: Intent?, listener: OkListener): Boolean {
+    fun onActivityResultResult(request: Int, result: Int, intent: Intent?, listener: OkListener): Boolean {
         if (isActivityRequestViral(request)) {
             if (intent == null) {
                 val json = JSONObject()
