@@ -9,6 +9,7 @@ import android.os.Build
 import android.text.TextUtils
 import android.webkit.CookieManager
 import android.webkit.CookieSyncManager
+import androidx.fragment.app.Fragment
 import org.json.JSONException
 import org.json.JSONObject
 import ru.ok.android.sdk.util.*
@@ -63,16 +64,44 @@ open class Odnoklassniki(
      * @param scopes      [OkScope] - application request permissions as per [OkScope].
      * @see OkAuthType
      */
-    fun requestAuthorization(activity: Activity, redirectUri: String?,
-                             authType: OkAuthType, vararg scopes: String) {
-        val intent = Intent(activity, OkAuthActivity::class.java)
-        intent.putExtra(PARAM_CLIENT_ID, appId)
-        intent.putExtra(PARAM_APP_KEY, appKey)
-        intent.putExtra(PARAM_REDIRECT_URI, redirectUri)
-        intent.putExtra(PARAM_AUTH_TYPE, authType)
-        intent.putExtra(PARAM_SCOPES, scopes)
-        activity.startActivityForResult(intent, OK_AUTH_REQUEST_CODE)
+    fun requestAuthorization(activity: Activity, redirectUri: String?, authType: OkAuthType, vararg scopes: String) {
+        startAuth(redirectUri, authType, scopes, activity = activity)
     }
+
+    /**
+     * Starts user authorization
+     *
+     * @param redirectUri the URI to which the access_token will be redirected
+     * @param authType    selected auth type
+     * @param scopes      [OkScope] - application request permissions as per [OkScope].
+     * @see OkAuthType
+     */
+    fun requestAuthorization(fragment: Fragment, redirectUri: String?, authType: OkAuthType, vararg scopes: String) {
+        startAuth(redirectUri, authType, scopes, fragment = fragment)
+    }
+
+    /**
+     * prepares Intent to be executed with startActivityForResult
+     */
+    private inline fun startRequest(activity: Activity?, fragment: Fragment?, code: Int, target: Class<*>, crossinline filler: (Intent) -> Unit) {
+        val intent = when {
+            activity != null -> Intent(activity, target)
+            fragment != null -> Intent(fragment.context, target)
+            else -> return
+        }
+        filler.invoke(intent)
+        activity?.startActivityForResult(intent, code)
+        fragment?.startActivityForResult(intent, code)
+    }
+
+    private fun startAuth(redirectUri: String?, authType: OkAuthType, scopes: Array<out String>, activity: Activity? = null, fragment: Fragment? = null) =
+            startRequest(activity, fragment, OK_AUTH_REQUEST_CODE, OkAuthActivity::class.java) { intent ->
+                intent.putExtra(PARAM_CLIENT_ID, appId)
+                intent.putExtra(PARAM_APP_KEY, appKey)
+                intent.putExtra(PARAM_REDIRECT_URI, redirectUri)
+                intent.putExtra(PARAM_AUTH_TYPE, authType)
+                intent.putExtra(PARAM_SCOPES, scopes)
+            }
 
     fun isActivityRequestOAuth(requestCode: Int): Boolean {
         return requestCode == OK_AUTH_REQUEST_CODE
@@ -315,16 +344,26 @@ open class Odnoklassniki(
      * @param userTextEnabled - ability to enable user comment
      * @param args            widget arguments as specified in documentation
      */
-    fun performPosting(activity: Activity, attachment: String, userTextEnabled: Boolean, args: HashMap<String, String>? = null) {
-        val intent = Intent(activity, OkPostingActivity::class.java)
-        intent.putExtra(PARAM_APP_ID, appId)
-        intent.putExtra(PARAM_ATTACHMENT, attachment)
-        intent.putExtra(PARAM_ACCESS_TOKEN, mAccessToken)
-        intent.putExtra(PARAM_WIDGET_ARGS, args)
-        intent.putExtra(PARAM_WIDGET_RETRY_ALLOWED, allowWidgetRetry)
-        intent.putExtra(PARAM_SESSION_SECRET_KEY, mSessionSecretKey)
-        intent.putExtra(PARAM_USER_TEXT_ENABLE, userTextEnabled)
-        activity.startActivityForResult(intent, OK_POSTING_REQUEST_CODE)
+    fun performPosting(activity: Activity, attachment: String, userTextEnabled: Boolean, args: HashMap<String, String>? = null) =
+            performPosting(attachment, userTextEnabled, args, activity = activity)
+
+    /**
+     * @see performPosting
+     */
+    fun performPosting(fragment: Fragment, attachment: String, userTextEnabled: Boolean, args: HashMap<String, String>? = null) =
+            performPosting(attachment, userTextEnabled, args, fragment = fragment)
+
+    private fun performPosting(attachment: String, userTextEnabled: Boolean, args: HashMap<String, String>? = null,
+                               activity: Activity? = null, fragment: Fragment? = null) {
+        startRequest(activity, fragment, OK_POSTING_REQUEST_CODE, OkPostingActivity::class.java) { intent ->
+            intent.putExtra(PARAM_APP_ID, appId)
+            intent.putExtra(PARAM_ATTACHMENT, attachment)
+            intent.putExtra(PARAM_ACCESS_TOKEN, mAccessToken)
+            intent.putExtra(PARAM_WIDGET_ARGS, args)
+            intent.putExtra(PARAM_WIDGET_RETRY_ALLOWED, allowWidgetRetry)
+            intent.putExtra(PARAM_SESSION_SECRET_KEY, mSessionSecretKey)
+            intent.putExtra(PARAM_USER_TEXT_ENABLE, userTextEnabled)
+        }
     }
 
     /**
@@ -333,25 +372,46 @@ open class Odnoklassniki(
      * @param args widget arguments as specified in documentation
      */
     fun performAppInvite(activity: Activity, args: HashMap<String, String>? = null) =
-            performAppSuggestInvite(activity, OkAppInviteActivity::class.java, args, OK_INVITING_REQUEST_CODE)
+            performAppSuggestInvite(OkAppInviteActivity::class.java, args, OK_INVITING_REQUEST_CODE, activity = activity)
+
+    /**
+     * Calls application invite widget
+     *
+     * @param args widget arguments as specified in documentation
+     */
+    fun performAppInvite(fragment: Fragment, args: HashMap<String, String>? = null) =
+            performAppSuggestInvite(OkAppInviteActivity::class.java, args, OK_INVITING_REQUEST_CODE, fragment = fragment)
 
     /**
      * Calls application suggest widget
      *
      * @param args widget arguments as specified in documentation
      */
-    fun performAppSuggest(activity: Activity, args: HashMap<String, String>? = null) =
-            performAppSuggestInvite(activity, OkAppSuggestActivity::class.java, args, OK_SUGGESTING_REQUEST_CODE)
+    fun performAppSuggest(activity: Activity, args: HashMap<String, String>? = null) {
+        performAppSuggestInvite(OkAppSuggestActivity::class.java, args, OK_SUGGESTING_REQUEST_CODE, activity = activity)
+    }
 
-    private fun performAppSuggestInvite(activity: Activity, clazz: Class<out AbstractWidgetActivity>,
-                                        args: HashMap<String, String>?, requestCode: Int) {
-        val intent = Intent(activity, clazz)
-        intent.putExtra(PARAM_APP_ID, appId)
-        intent.putExtra(PARAM_ACCESS_TOKEN, mAccessToken)
-        intent.putExtra(PARAM_WIDGET_RETRY_ALLOWED, allowWidgetRetry)
-        intent.putExtra(PARAM_SESSION_SECRET_KEY, mSessionSecretKey)
-        intent.putExtra(PARAM_WIDGET_ARGS, args)
-        activity.startActivityForResult(intent, requestCode)
+    /**
+     * Calls application suggest widget
+     *
+     * @param args widget arguments as specified in documentation
+     */
+    fun performAppSuggest(fragment: Fragment, args: HashMap<String, String>? = null) {
+        performAppSuggestInvite(OkAppSuggestActivity::class.java, args, OK_SUGGESTING_REQUEST_CODE, fragment = fragment)
+    }
+
+    private fun performAppSuggestInvite(clazz: Class<out AbstractWidgetActivity>,
+                                        args: HashMap<String, String>?,
+                                        code: Int,
+                                        activity: Activity? = null,
+                                        fragment: Fragment? = null) {
+        startRequest(activity, fragment, code, clazz) { intent ->
+            intent.putExtra(PARAM_APP_ID, appId)
+            intent.putExtra(PARAM_ACCESS_TOKEN, mAccessToken)
+            intent.putExtra(PARAM_WIDGET_RETRY_ALLOWED, allowWidgetRetry)
+            intent.putExtra(PARAM_SESSION_SECRET_KEY, mSessionSecretKey)
+            intent.putExtra(PARAM_WIDGET_ARGS, args)
+        }
     }
 
     private fun signParameters(params: MutableMap<String, String>) {
