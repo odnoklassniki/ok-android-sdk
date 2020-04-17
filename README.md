@@ -23,7 +23,7 @@ dependencies {
 ## Application (registered on OK.ru) Requirements
 An [application registered](https://ok.ru/showcase/myuploaded) within OK platform should have:
 
-1. Target platform checked (like ANDROID or IOS)
+1. Target platform checked (like ANDROID or IOS). You can act without ANDROID platform being activated, however since the SDK by default is passing platform=android to all REST calls, it's recommended to specify OkRequestMode.NO_PLATFORM_REPORTING when doing your requests
 2. EXTERNAL platform checked
 3. Client OAUTH checkbox checked
 4. A VALUABLE_ACCESS permission being checked or requested
