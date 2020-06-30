@@ -26,8 +26,6 @@ open class Odnoklassniki(
     var sdkToken: String?
     protected val okPayment: OkPayment
 
-    /** Set true if wish to support logging in via OK debug application installed instead of release one */
-    open val allowDebugOkSso = false
     /** Widgets ask user to retry the action on error (set false for instant error callback) */
     var allowWidgetRetry = true
 
@@ -58,26 +56,34 @@ open class Odnoklassniki(
 
     /**
      * Starts user authorization
+     * <br/>
+     * Note: If using server OAUTH (as described in https://apiok.ru/en/ext/oauth/server), you are responsible to retrieving
+     *     access_token and setting it in #setTokens
      *
      * @param redirectUri the URI to which the access_token will be redirected
      * @param authType    selected auth type
      * @param scopes      [OkScope] - application request permissions as per [OkScope].
      * @see OkAuthType
      */
-    fun requestAuthorization(activity: Activity, redirectUri: String?, authType: OkAuthType, vararg scopes: String) {
-        startAuth(redirectUri, authType, scopes, activity = activity)
+    fun requestAuthorization(activity: Activity, redirectUri: String?, authType: OkAuthType,
+                             vararg scopes: String, withServerOauth: Boolean = false) {
+        startAuth(redirectUri, authType, scopes, activity = activity, withServerOauth = withServerOauth)
     }
 
     /**
      * Starts user authorization
+     * <br/>
+     * Note: If using server OAUTH (as described in https://apiok.ru/en/ext/oauth/server), you are responsible to retrieving
+     *     access_token and setting it view #setTokens
      *
      * @param redirectUri the URI to which the access_token will be redirected
      * @param authType    selected auth type
      * @param scopes      [OkScope] - application request permissions as per [OkScope].
      * @see OkAuthType
      */
-    fun requestAuthorization(fragment: Fragment, redirectUri: String?, authType: OkAuthType, vararg scopes: String) {
-        startAuth(redirectUri, authType, scopes, fragment = fragment)
+    fun requestAuthorization(fragment: Fragment, redirectUri: String?, authType: OkAuthType,
+                             vararg scopes: String, withServerOauth: Boolean = false) {
+        startAuth(redirectUri, authType, scopes, fragment = fragment, withServerOauth = withServerOauth)
     }
 
     /**
@@ -94,13 +100,15 @@ open class Odnoklassniki(
         fragment?.startActivityForResult(intent, code)
     }
 
-    private fun startAuth(redirectUri: String?, authType: OkAuthType, scopes: Array<out String>, activity: Activity? = null, fragment: Fragment? = null) =
+    private fun startAuth(redirectUri: String?, authType: OkAuthType, scopes: Array<out String>, activity: Activity? = null, fragment: Fragment? = null,
+                          withServerOauth: Boolean) =
             startRequest(activity, fragment, OK_AUTH_REQUEST_CODE, OkAuthActivity::class.java) { intent ->
                 intent.putExtra(PARAM_CLIENT_ID, appId)
                 intent.putExtra(PARAM_APP_KEY, appKey)
                 intent.putExtra(PARAM_REDIRECT_URI, redirectUri)
                 intent.putExtra(PARAM_AUTH_TYPE, authType)
                 intent.putExtra(PARAM_SCOPES, scopes)
+                if (withServerOauth) intent.putExtra(OAUTH_TYPE, OAUTH_TYPE_SERVER)
             }
 
     fun isActivityRequestOAuth(requestCode: Int): Boolean {
@@ -117,21 +125,27 @@ open class Odnoklassniki(
                 }
 
                 listener.onError(json.toString())
-            } else {
-                val accessToken = intent.getStringExtra(PARAM_ACCESS_TOKEN)
-                if (accessToken == null) {
+                return true
+            }
+
+            val serverCode = intent.getStringExtra(PARAM_CODE)
+            val accessToken = intent.getStringExtra(PARAM_ACCESS_TOKEN)
+            when {
+                !serverCode.isNullOrBlank() -> listener.onSuccess(JSONObject().also {
+                    it.put(PARAM_CODE, serverCode)
+                })
+                accessToken == null -> {
                     val error = intent.getStringExtra(PARAM_ERROR)
-                    if (result == RESULT_CANCELLED && listener is OkAuthListener) {
-                        listener.onCancel(error)
-                    } else {
-                        listener.onError(error)
+                    when {
+                        result == RESULT_CANCELLED && listener is OkAuthListener -> listener.onCancel(error)
+                        else -> listener.onError(error)
                     }
-                } else {
+                }
+                else -> {
                     val sessionSecretKey = intent.getStringExtra(PARAM_SESSION_SECRET_KEY)
                     val refreshToken = intent.getStringExtra(PARAM_REFRESH_TOKEN)
                     val expiresIn = intent.getLongExtra(PARAM_EXPIRES_IN, 0)
-                    mAccessToken = accessToken
-                    mSessionSecretKey = sessionSecretKey ?: refreshToken
+                    setTokens(context, accessToken, sessionSecretKey ?: refreshToken)
                     val json = JSONObject()
                     try {
                         json.put(PARAM_ACCESS_TOKEN, mAccessToken)
@@ -438,6 +452,12 @@ open class Odnoklassniki(
             CookieSyncManager.createInstance(context)
             CookieManager.getInstance().removeAllCookie()
         }
+    }
+
+    fun setTokens(ctx: Context, accessToken: String, sessionSecretKey: String, withPersistance: Boolean = false) {
+        mAccessToken = accessToken
+        mSessionSecretKey = sessionSecretKey
+        if (withPersistance) TokenStore.store(ctx, accessToken, sessionSecretKey)
     }
 
     /**
