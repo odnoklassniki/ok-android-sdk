@@ -21,6 +21,10 @@ import android.webkit.WebView
 import ru.ok.android.sdk.util.OkAuthType
 import java.net.URLEncoder
 
+const val OAUTH_TYPE = "oauth_type"
+const val OAUTH_TYPE_SERVER = "code"
+const val OAUTH_TYPE_CLIENT = "token"
+
 const val RESULT_FAILED = 2
 const val RESULT_CANCELLED = 3
 
@@ -38,6 +42,7 @@ class OkAuthActivity : Activity() {
     private lateinit var mScopes: Array<String>
     private var authType: OkAuthType? = null
     private var ssoAuthorizationStarted = false
+    private var withServerOauth = false
 
     private lateinit var mWebView: WebView
 
@@ -55,6 +60,7 @@ class OkAuthActivity : Activity() {
         authType = if (bundle.getSerializable(PARAM_AUTH_TYPE) is OkAuthType)
             bundle.getSerializable(PARAM_AUTH_TYPE) as OkAuthType else OkAuthType.ANY
         ssoAuthorizationStarted = bundle.getBoolean(SSO_STARTED, false)
+        withServerOauth = bundle.getString(OAUTH_TYPE) == OAUTH_TYPE_SERVER
 
         if (!ssoAuthorizationStarted) auth()
     }
@@ -74,6 +80,7 @@ class OkAuthActivity : Activity() {
         outState.putStringArray(PARAM_SCOPES, mScopes)
         outState.putSerializable(PARAM_AUTH_TYPE, authType)
         outState.putBoolean(SSO_STARTED, ssoAuthorizationStarted)
+        outState.putString(OAUTH_TYPE, if (withServerOauth) OAUTH_TYPE_SERVER else null)
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -106,7 +113,8 @@ class OkAuthActivity : Activity() {
     }
 
     private fun buildOAuthUrl(): String {
-        var url = "${REMOTE_WIDGETS}oauth/authorize?client_id=$mAppId&response_type=token&redirect_uri=$mRedirectUri&layout=m&platform=$APP_PLATFORM"
+        val responseType = if (withServerOauth) OAUTH_TYPE_SERVER else OAUTH_TYPE_CLIENT
+        var url = "${REMOTE_WIDGETS}oauth/authorize?client_id=$mAppId&response_type=$responseType&redirect_uri=$mRedirectUri&layout=m&platform=$APP_PLATFORM"
         if (!mScopes.isNullOrEmpty()) {
             val scopesString = URLEncoder.encode(mScopes.joinToString(separator = ";"))
             url = "$url&scope=$scopesString"
@@ -123,11 +131,7 @@ class OkAuthActivity : Activity() {
     @Suppress("DEPRECATION")
     private fun startSsoAuthorization(): Boolean {
         val intent = Intent()
-        var resolveInfo: ResolveInfo? = resolveOkAppLogin(intent, "ru.ok.android")
-        if (resolveInfo == null && Odnoklassniki.of(this).allowDebugOkSso) {
-            resolveInfo = resolveOkAppLogin(intent, "ru.ok.android.debug")
-        }
-        if (resolveInfo == null) return false
+        val resolveInfo = resolveOkAppLogin(intent, "ru.ok.android") ?: return false
         try {
             val packageInfo = packageManager.getPackageInfo(resolveInfo.activityInfo.packageName, PackageManager.GET_SIGNATURES)
             if (packageInfo == null || packageInfo.versionCode < 120) return false
@@ -135,6 +139,7 @@ class OkAuthActivity : Activity() {
                 intent.putExtra(PARAM_CLIENT_ID, mAppId)
                 intent.putExtra(PARAM_CLIENT_SECRET, DEFAULT_SECRET_KEY)
                 intent.putExtra(PARAM_REDIRECT_URI, mRedirectUri)
+                if (withServerOauth) intent.putExtra(OAUTH_TYPE, OAUTH_TYPE_SERVER)
                 if (mScopes.isNotEmpty()) intent.putExtra(PARAM_SCOPES, mScopes)
                 try {
                     startActivityForResult(intent, SSO_ACTIVITY_REQUEST_CODE)
@@ -153,14 +158,15 @@ class OkAuthActivity : Activity() {
             var error = true
             val errorStr = data?.getStringExtra(PARAM_ERROR) ?: ""
             if (resultCode == Activity.RESULT_OK) {
+                val code = data?.getStringExtra(PARAM_CODE)
                 val accessToken = data?.getStringExtra(PARAM_ACCESS_TOKEN)
                 val sessionSecretKey = data?.getStringExtra(PARAM_SESSION_SECRET_KEY)
                 val refreshToken = data?.getStringExtra(PARAM_REFRESH_TOKEN)
                 val expiresIn = data?.getLongExtra(PARAM_EXPIRES_IN, 0) ?: 0
 
-                if (accessToken != null) {
+                if (accessToken != null || code != null) {
                     error = false
-                    onSuccess(accessToken, sessionSecretKey ?: refreshToken, expiresIn)
+                    onSuccess(accessToken, sessionSecretKey ?: refreshToken, expiresIn, code)
                 }
             }
             if (error) onFail(errorStr)
@@ -184,12 +190,17 @@ class OkAuthActivity : Activity() {
         finish()
     }
 
-    private fun onSuccess(accessToken: String, sessionSecretKey: String?, expiresIn: Long) {
-        TokenStore.store(this, accessToken, sessionSecretKey!!)
+    private fun onSuccess(accessToken: String? = null, sessionSecretKey: String? = null, expiresIn: Long = 0, code: String? = null) {
         val result = Intent()
-        result.putExtra(PARAM_ACCESS_TOKEN, accessToken)
-        result.putExtra(PARAM_SESSION_SECRET_KEY, sessionSecretKey)
-        if (expiresIn > 0) result.putExtra(PARAM_EXPIRES_IN, expiresIn)
+        if (accessToken != null) {
+            TokenStore.store(this, accessToken, sessionSecretKey!!)
+
+            result.putExtra(PARAM_ACCESS_TOKEN, accessToken)
+            result.putExtra(PARAM_SESSION_SECRET_KEY, sessionSecretKey)
+            if (expiresIn > 0) result.putExtra(PARAM_EXPIRES_IN, expiresIn)
+        } else {
+            result.putExtra(PARAM_CODE, code)
+        }
         setResult(Activity.RESULT_OK, result)
         finish()
     }
@@ -215,6 +226,7 @@ class OkAuthActivity : Activity() {
             if (url.startsWith(mRedirectUri!!)) {
                 val uri = Uri.parse(url)
                 val fragment = uri.fragment
+                var code: String? = null
                 var accessToken: String? = null
                 var sessionSecretKey: String? = null
                 var error: String? = null
@@ -226,6 +238,7 @@ class OkAuthActivity : Activity() {
                             val key = splitted[0]
                             val value = splitted[1]
                             when (key) {
+                                PARAM_CODE -> code = value
                                 PARAM_ACCESS_TOKEN -> accessToken = value
                                 PARAM_SESSION_SECRET_KEY, PARAM_REFRESH_TOKEN -> sessionSecretKey = value
                                 PARAM_ERROR -> error = value
@@ -235,7 +248,9 @@ class OkAuthActivity : Activity() {
                     }
                 }
                 if (accessToken != null) {
-                    onSuccess(accessToken, sessionSecretKey, expiresIn)
+                    onSuccess(accessToken = accessToken, sessionSecretKey = sessionSecretKey, expiresIn = expiresIn)
+                } else if (code != null) {
+                    onSuccess(code = code)
                 } else {
                     onFail(error)
                 }
