@@ -155,21 +155,28 @@ class OkAuthActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == SSO_ACTIVITY_REQUEST_CODE) {
             ssoAuthorizationStarted = false
-            var error = true
             val errorStr = data?.getStringExtra(PARAM_ERROR) ?: ""
-            if (resultCode == Activity.RESULT_OK) {
-                val code = data?.getStringExtra(PARAM_CODE)
-                val accessToken = data?.getStringExtra(PARAM_ACCESS_TOKEN)
-                val sessionSecretKey = data?.getStringExtra(PARAM_SESSION_SECRET_KEY)
-                val refreshToken = data?.getStringExtra(PARAM_REFRESH_TOKEN)
-                val expiresIn = data?.getLongExtra(PARAM_EXPIRES_IN, 0) ?: 0
+            when (resultCode) {
+                RESULT_OK -> {
+                    val code = data?.getStringExtra(PARAM_CODE)
+                    val accessToken = data?.getStringExtra(PARAM_ACCESS_TOKEN)
+                    val sessionSecretKey = data?.getStringExtra(PARAM_SESSION_SECRET_KEY)
+                    val refreshToken = data?.getStringExtra(PARAM_REFRESH_TOKEN)
+                    val expiresIn = data?.getLongExtra(PARAM_EXPIRES_IN, 0) ?: 0
 
-                if (accessToken != null || code != null) {
-                    error = false
-                    onSuccess(accessToken, sessionSecretKey ?: refreshToken, expiresIn, code)
+                    if (accessToken != null || code != null) {
+                        onSuccess(accessToken, sessionSecretKey ?: refreshToken, expiresIn, code)
+                    } else {
+                        onFail(errorStr)
+                    }
+                }
+                RESULT_CANCELED -> {
+                    onCancel(errorStr)
+                }
+                RESULT_FAILED -> {
+                    onFail(errorStr)
                 }
             }
-            if (error) onFail(errorStr)
             finish()
         } else {
             super.onActivityResult(requestCode, resultCode, data)
