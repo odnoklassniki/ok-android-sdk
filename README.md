@@ -21,7 +21,7 @@ dependencies {
 
 
 ## Application (registered on OK.ru) Requirements
-An [application registered](https://ok.ru/showcase/myuploaded) within OK platform should have:
+An [application registered](https://ok.ru/vitrine/myuploaded) within OK platform should have:
 
 1. Target platform checked (like ANDROID or IOS). You can act without ANDROID platform being activated, however since the SDK by default is passing platform=android to all REST calls, it's recommended to specify OkRequestMode.NO_PLATFORM_REPORTING when doing your requests
 2. EXTERNAL platform checked
@@ -33,7 +33,6 @@ An [application registered](https://ok.ru/showcase/myuploaded) within OK platfor
  
 - AndroidManifest.xml:
   - OkAuthActivity should be added (see Quick Start [example](https://github.com/odnoklassniki/ok-android-sdk/blob/master/odnoklassniki-android-sdk-example/src/main/AndroidManifest.xml#L22))
-  - Specify correct [scheme-host](https://github.com/odnoklassniki/ok-android-sdk/blob/master/odnoklassniki-android-sdk-example/src/main/AndroidManifest.xml#L32) pair like _okauth://ok12345_ where _12345_ is your application id on OK platform for native SSO auth to work correctly
 - If using sdk.getInstallSource
   - a dependency to play-services-ads to get advertising id
 

@@ -30,7 +30,7 @@ const val RESULT_CANCELLED = 3
 
 private const val SSO_ACTIVITY_REQUEST_CODE = 31337
 private const val DEFAULT_SECRET_KEY = "6C6B6397C2BCE5EDB7290039"
-private const val DEFAULT_REDIRECT_URI = "okauth://auth"
+private const val REDIRECT_URI = "okauth://auth"
 private const val SSO_STARTED = "SSO_STARTED"
 private const val MIN_OK_VER_WITH_SERVER_SSO = 638
 
@@ -39,7 +39,6 @@ private const val ODKL_APP_PUBLIC_SIGNATURE = "3082025b308201c4a00302010202044f6
 class OkAuthActivity : Activity() {
     private var mAppId: String? = null
     private var mAppKey: String? = null
-    private var mRedirectUri: String? = null
     private lateinit var mScopes: Array<String>
     private var authType: OkAuthType? = null
     private var ssoAuthorizationStarted = false
@@ -56,7 +55,6 @@ class OkAuthActivity : Activity() {
         val bundle = savedInstanceState ?: intent.extras ?: Bundle()
         mAppId = bundle.getString(PARAM_CLIENT_ID)
         mAppKey = bundle.getString(PARAM_APP_KEY)
-        mRedirectUri = bundle.getString(PARAM_REDIRECT_URI) ?: DEFAULT_REDIRECT_URI
         mScopes = bundle.getStringArray(PARAM_SCOPES) ?: arrayOf()
         authType = if (bundle.getSerializable(PARAM_AUTH_TYPE) is OkAuthType)
             bundle.getSerializable(PARAM_AUTH_TYPE) as OkAuthType else OkAuthType.ANY
@@ -77,7 +75,6 @@ class OkAuthActivity : Activity() {
         super.onSaveInstanceState(outState)
         outState.putString(PARAM_CLIENT_ID, mAppId)
         outState.putString(PARAM_APP_KEY, mAppKey)
-        outState.putString(PARAM_REDIRECT_URI, mRedirectUri)
         outState.putStringArray(PARAM_SCOPES, mScopes)
         outState.putSerializable(PARAM_AUTH_TYPE, authType)
         outState.putBoolean(SSO_STARTED, ssoAuthorizationStarted)
@@ -115,7 +112,7 @@ class OkAuthActivity : Activity() {
 
     private fun buildOAuthUrl(): String {
         val responseType = if (withServerOauth) OAUTH_TYPE_SERVER else OAUTH_TYPE_CLIENT
-        var url = "${REMOTE_WIDGETS}oauth/authorize?client_id=$mAppId&response_type=$responseType&redirect_uri=$mRedirectUri&layout=m&platform=$APP_PLATFORM"
+        var url = "${REMOTE_WIDGETS}oauth/authorize?client_id=$mAppId&response_type=$responseType&redirect_uri=$REDIRECT_URI&layout=m&platform=$APP_PLATFORM"
         if (!mScopes.isNullOrEmpty()) {
             val scopesString = URLEncoder.encode(mScopes.joinToString(separator = ";"))
             url = "$url&scope=$scopesString"
@@ -123,8 +120,8 @@ class OkAuthActivity : Activity() {
         return url
     }
 
-    private fun resolveOkAppLogin(intent: Intent, aPackage: String): ResolveInfo? {
-        intent.setClassName(aPackage, "ru.ok.android.external.LoginExternal")
+    private fun resolveOkAppLogin(intent: Intent): ResolveInfo? {
+        intent.setClassName("ru.ok.android", "ru.ok.android.external.LoginExternal")
         return packageManager.resolveActivity(intent, 0)
     }
 
@@ -132,15 +129,14 @@ class OkAuthActivity : Activity() {
     @Suppress("DEPRECATION")
     private fun startSsoAuthorization(): Boolean {
         val intent = Intent()
-        val resolveInfo = resolveOkAppLogin(intent, "ru.ok.android") ?: return false
+        val resolveInfo = resolveOkAppLogin(intent) ?: return false
         try {
             val packageInfo = packageManager.getPackageInfo(resolveInfo.activityInfo.packageName, PackageManager.GET_SIGNATURES)
-            if (packageInfo == null || packageInfo.versionCode < 120) return false
+                    ?.takeIf { it.versionCode >= 120 } ?: return false
             if (withServerOauth && packageInfo.versionCode < MIN_OK_VER_WITH_SERVER_SSO) return false
             if (packageInfo.signatures.any { it.toCharsString() == ODKL_APP_PUBLIC_SIGNATURE }) {
                 intent.putExtra(PARAM_CLIENT_ID, mAppId)
                 intent.putExtra(PARAM_CLIENT_SECRET, DEFAULT_SECRET_KEY)
-                intent.putExtra(PARAM_REDIRECT_URI, mRedirectUri)
                 if (withServerOauth) intent.putExtra(OAUTH_TYPE, OAUTH_TYPE_SERVER)
                 if (mScopes.isNotEmpty()) intent.putExtra(PARAM_SCOPES, mScopes)
                 try {
@@ -210,7 +206,7 @@ class OkAuthActivity : Activity() {
         } else {
             result.putExtra(PARAM_CODE, code)
         }
-        setResult(Activity.RESULT_OK, result)
+        setResult(RESULT_OK, result)
         finish()
     }
 
@@ -232,7 +228,7 @@ class OkAuthActivity : Activity() {
 
     private inner class OAuthWebViewClient(context: Context) : OkWebViewClient(context) {
         override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
-            if (url.startsWith(mRedirectUri!!)) {
+            if (url.startsWith(REDIRECT_URI)) {
                 val uri = Uri.parse(url)
                 val fragment = uri.fragment
                 var code: String? = null
@@ -256,12 +252,10 @@ class OkAuthActivity : Activity() {
                         }
                     }
                 }
-                if (accessToken != null) {
-                    onSuccess(accessToken = accessToken, sessionSecretKey = sessionSecretKey, expiresIn = expiresIn)
-                } else if (code != null) {
-                    onSuccess(code = code)
-                } else {
-                    onFail(error)
+                when {
+                    accessToken != null -> onSuccess(accessToken = accessToken, sessionSecretKey = sessionSecretKey, expiresIn = expiresIn)
+                    code != null -> onSuccess(code = code)
+                    else -> onFail(error)
                 }
                 return true
             } else if (url.contains("st.cmd=userMain")) {

@@ -60,14 +60,13 @@ open class Odnoklassniki(
      * Note: If using server OAUTH (as described in https://apiok.ru/en/ext/oauth/server), you are responsible to retrieving
      *     access_token and setting it in #setTokens
      *
-     * @param redirectUri the URI to which the access_token will be redirected
      * @param authType    selected auth type
      * @param scopes      [OkScope] - application request permissions as per [OkScope].
      * @see OkAuthType
      */
-    fun requestAuthorization(activity: Activity, redirectUri: String?, authType: OkAuthType,
+    fun requestAuthorization(activity: Activity, authType: OkAuthType,
                              vararg scopes: String, withServerOauth: Boolean = false) {
-        startAuth(redirectUri, authType, scopes, activity = activity, withServerOauth = withServerOauth)
+        startAuth(authType, scopes, activity = activity, withServerOauth = withServerOauth)
     }
 
     /**
@@ -76,14 +75,13 @@ open class Odnoklassniki(
      * Note: If using server OAUTH (as described in https://apiok.ru/en/ext/oauth/server), you are responsible to retrieving
      *     access_token and setting it view #setTokens
      *
-     * @param redirectUri the URI to which the access_token will be redirected
      * @param authType    selected auth type
      * @param scopes      [OkScope] - application request permissions as per [OkScope].
      * @see OkAuthType
      */
-    fun requestAuthorization(fragment: Fragment, redirectUri: String?, authType: OkAuthType,
+    fun requestAuthorization(fragment: Fragment, authType: OkAuthType,
                              vararg scopes: String, withServerOauth: Boolean = false) {
-        startAuth(redirectUri, authType, scopes, fragment = fragment, withServerOauth = withServerOauth)
+        startAuth(authType, scopes, fragment = fragment, withServerOauth = withServerOauth)
     }
 
     /**
@@ -100,12 +98,11 @@ open class Odnoklassniki(
         fragment?.startActivityForResult(intent, code)
     }
 
-    private fun startAuth(redirectUri: String?, authType: OkAuthType, scopes: Array<out String>, activity: Activity? = null, fragment: Fragment? = null,
+    private fun startAuth(authType: OkAuthType, scopes: Array<out String>, activity: Activity? = null, fragment: Fragment? = null,
                           withServerOauth: Boolean) =
             startRequest(activity, fragment, OK_AUTH_REQUEST_CODE, OkAuthActivity::class.java) { intent ->
                 intent.putExtra(PARAM_CLIENT_ID, appId)
                 intent.putExtra(PARAM_APP_KEY, appKey)
-                intent.putExtra(PARAM_REDIRECT_URI, redirectUri)
                 intent.putExtra(PARAM_AUTH_TYPE, authType)
                 intent.putExtra(PARAM_SCOPES, scopes)
                 if (withServerOauth) intent.putExtra(OAUTH_TYPE, OAUTH_TYPE_SERVER)

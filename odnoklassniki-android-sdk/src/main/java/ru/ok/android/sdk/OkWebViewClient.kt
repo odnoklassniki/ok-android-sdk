@@ -31,28 +31,21 @@ internal open class OkWebViewClient(private val mContext: Context) : WebViewClie
         super.onReceivedSslError(view, handler, error)
     }
 
-    fun getErrorMessage(errorCode: Int): String {
-        return when (errorCode) {
-            WebViewClient.ERROR_CONNECT -> getString(R.string.error_connect)
-            WebViewClient.ERROR_FAILED_SSL_HANDSHAKE -> getString(R.string.error_failed_ssl_handshake)
-            WebViewClient.ERROR_HOST_LOOKUP -> getString(R.string.error_host_lookup)
-            WebViewClient.ERROR_TIMEOUT -> getString(R.string.error_timeout)
-            else -> getString(R.string.error_unknown)
-        }
+    fun getErrorMessage(errorCode: Int): String = when (errorCode) {
+        ERROR_CONNECT -> getString(R.string.error_connect)
+        ERROR_FAILED_SSL_HANDSHAKE -> getString(R.string.error_failed_ssl_handshake)
+        ERROR_HOST_LOOKUP -> getString(R.string.error_host_lookup)
+        ERROR_TIMEOUT -> getString(R.string.error_timeout)
+        else -> getString(R.string.error_unknown)
     }
 
-    fun getErrorMessage(error: SslError): String {
-        val errorCode = error.primaryError
-        return when (errorCode) {
-            SslError.SSL_EXPIRED -> getString(R.string.error_ssl_expired)
-            SslError.SSL_IDMISMATCH -> getString(R.string.error_ssl_id_mismatch)
-            SslError.SSL_NOTYETVALID -> getString(R.string.error_ssl_not_yet_valid)
-            SslError.SSL_UNTRUSTED -> getString(R.string.error_ssl_untrusted)
-            else -> return when (errorCode) {
-                SslError.SSL_DATE_INVALID -> getString(R.string.error_ssl_date_invalid)
-                else -> getString(R.string.error_unknown)
-            }
-        }
+    fun getErrorMessage(error: SslError): String = when (error.primaryError) {
+        SslError.SSL_EXPIRED -> getString(R.string.error_ssl_expired)
+        SslError.SSL_IDMISMATCH -> getString(R.string.error_ssl_id_mismatch)
+        SslError.SSL_NOTYETVALID -> getString(R.string.error_ssl_not_yet_valid)
+        SslError.SSL_UNTRUSTED -> getString(R.string.error_ssl_untrusted)
+        SslError.SSL_DATE_INVALID -> getString(R.string.error_ssl_date_invalid)
+        else -> getString(R.string.error_unknown)
     }
 
     private fun getString(resId: Int): String = mContext.getString(resId)

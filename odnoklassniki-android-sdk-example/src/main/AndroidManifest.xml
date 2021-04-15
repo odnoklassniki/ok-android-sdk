@@ -19,21 +19,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- SDK activities -->
         <activity
             android:name="ru.ok.android.sdk.OkAuthActivity"
             android:configChanges="orientation|screenSize"
-            android:launchMode="singleTop">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:host="ok125497344"
-                    android:scheme="okauth" />
-            </intent-filter>
-        </activity>
+            android:launchMode="singleTop"
+            />
         <activity android:name="ru.ok.android.sdk.OkPostingActivity" />
         <activity android:name="ru.ok.android.sdk.OkAppInviteActivity" />
         <activity android:name="ru.ok.android.sdk.OkAppSuggestActivity" />

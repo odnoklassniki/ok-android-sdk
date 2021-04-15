@@ -18,7 +18,6 @@ import ru.ok.android.sdk.ContextOkListener
 // -------------- YOUR APP DATA GOES HERE ------------
 private const val APP_ID = "125497344"
 private const val APP_KEY = "CBABPLHIABABABABA"
-private const val REDIRECT_URL = "okauth://ok125497344"
 // -------------- YOUR APP DATA ENDS -----------------
 
 class MainActivity : Activity() {
@@ -31,13 +30,13 @@ class MainActivity : Activity() {
 
         // NOTE: application should use just one of the login methods, ANY is preferable
         sdk_login_any.setOnClickListener {
-            ok.requestAuthorization(this, REDIRECT_URL, OkAuthType.ANY, OkScope.VALUABLE_ACCESS)
+            ok.requestAuthorization(this, OkAuthType.ANY, OkScope.VALUABLE_ACCESS)
         }
         sdk_login_sso.setOnClickListener {
-            ok.requestAuthorization(this, REDIRECT_URL, OkAuthType.NATIVE_SSO, OkScope.VALUABLE_ACCESS)
+            ok.requestAuthorization(this, OkAuthType.NATIVE_SSO, OkScope.VALUABLE_ACCESS)
         }
         sdk_login_oauth.setOnClickListener {
-            ok.requestAuthorization(this, REDIRECT_URL, OkAuthType.WEBVIEW_OAUTH, OkScope.VALUABLE_ACCESS)
+            ok.requestAuthorization(this, OkAuthType.WEBVIEW_OAUTH, OkScope.VALUABLE_ACCESS)
         }
 
         sdk_get_currentuser.setOnClickListener {
