@@ -23,16 +23,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- SDK activities -->
-        <activity
-            android:name="ru.ok.android.sdk.OkAuthActivity"
-            android:configChanges="orientation|screenSize"
-            android:launchMode="singleTop"
-            />
-        <activity android:name="ru.ok.android.sdk.OkPostingActivity" />
-        <activity android:name="ru.ok.android.sdk.OkAppInviteActivity" />
-        <activity android:name="ru.ok.android.sdk.OkAppSuggestActivity" />
     </application>
 
 </manifest>
