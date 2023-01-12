@@ -5,10 +5,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.AsyncTask
-import android.os.Build
 import android.text.TextUtils
 import android.webkit.CookieManager
-import android.webkit.CookieSyncManager
 import androidx.fragment.app.Fragment
 import org.json.JSONException
 import org.json.JSONObject
@@ -17,9 +15,9 @@ import java.io.IOException
 import java.util.*
 
 open class Odnoklassniki(
-        private val context: Context,
-        id: String? = null,
-        key: String? = null
+    private val context: Context,
+    id: String? = null,
+    key: String? = null
 ) {
     var mAccessToken: String?
     var mSessionSecretKey: String?
@@ -64,8 +62,10 @@ open class Odnoklassniki(
      * @param scopes      [OkScope] - application request permissions as per [OkScope].
      * @see OkAuthType
      */
-    fun requestAuthorization(activity: Activity, authType: OkAuthType,
-                             vararg scopes: String, withServerOauth: Boolean = false) {
+    fun requestAuthorization(
+        activity: Activity, authType: OkAuthType,
+        vararg scopes: String, withServerOauth: Boolean = false
+    ) {
         startAuth(authType, scopes, activity = activity, withServerOauth = withServerOauth)
     }
 
@@ -79,8 +79,10 @@ open class Odnoklassniki(
      * @param scopes      [OkScope] - application request permissions as per [OkScope].
      * @see OkAuthType
      */
-    fun requestAuthorization(fragment: Fragment, authType: OkAuthType,
-                             vararg scopes: String, withServerOauth: Boolean = false) {
+    fun requestAuthorization(
+        fragment: Fragment, authType: OkAuthType,
+        vararg scopes: String, withServerOauth: Boolean = false
+    ) {
         startAuth(authType, scopes, fragment = fragment, withServerOauth = withServerOauth)
     }
 
@@ -98,15 +100,17 @@ open class Odnoklassniki(
         fragment?.startActivityForResult(intent, code)
     }
 
-    private fun startAuth(authType: OkAuthType, scopes: Array<out String>, activity: Activity? = null, fragment: Fragment? = null,
-                          withServerOauth: Boolean) =
-            startRequest(activity, fragment, OK_AUTH_REQUEST_CODE, OkAuthActivity::class.java) { intent ->
-                intent.putExtra(PARAM_CLIENT_ID, appId)
-                intent.putExtra(PARAM_APP_KEY, appKey)
-                intent.putExtra(PARAM_AUTH_TYPE, authType)
-                intent.putExtra(PARAM_SCOPES, scopes)
-                if (withServerOauth) intent.putExtra(OAUTH_TYPE, OAUTH_TYPE_SERVER)
-            }
+    private fun startAuth(
+        authType: OkAuthType, scopes: Array<out String>, activity: Activity? = null, fragment: Fragment? = null,
+        withServerOauth: Boolean
+    ) =
+        startRequest(activity, fragment, OK_AUTH_REQUEST_CODE, OkAuthActivity::class.java) { intent ->
+            intent.putExtra(PARAM_CLIENT_ID, appId)
+            intent.putExtra(PARAM_APP_KEY, appKey)
+            intent.putExtra(PARAM_AUTH_TYPE, authType)
+            intent.putExtra(PARAM_SCOPES, scopes)
+            if (withServerOauth) intent.putExtra(OAUTH_TYPE, OAUTH_TYPE_SERVER)
+        }
 
     fun isActivityRequestOAuth(requestCode: Int): Boolean {
         return requestCode == OK_AUTH_REQUEST_CODE
@@ -127,11 +131,12 @@ open class Odnoklassniki(
 
             val serverCode = intent.getStringExtra(PARAM_CODE)
             val accessToken = intent.getStringExtra(PARAM_ACCESS_TOKEN)
+            val sessionSecretKey = intent.getStringExtra(PARAM_SESSION_SECRET_KEY) ?: intent.getStringExtra(PARAM_REFRESH_TOKEN)
             when {
                 !serverCode.isNullOrBlank() -> listener.onSuccess(JSONObject().also {
                     it.put(PARAM_CODE, serverCode)
                 })
-                accessToken == null -> {
+                accessToken == null || sessionSecretKey == null -> {
                     val error = intent.getStringExtra(PARAM_ERROR)
                     when {
                         result == RESULT_CANCELLED && listener is OkAuthListener -> listener.onCancel(error)
@@ -139,10 +144,8 @@ open class Odnoklassniki(
                     }
                 }
                 else -> {
-                    val sessionSecretKey = intent.getStringExtra(PARAM_SESSION_SECRET_KEY)
-                    val refreshToken = intent.getStringExtra(PARAM_REFRESH_TOKEN)
                     val expiresIn = intent.getLongExtra(PARAM_EXPIRES_IN, 0)
-                    setTokens(context, accessToken, sessionSecretKey ?: refreshToken)
+                    setTokens(context, accessToken, sessionSecretKey)
                     val json = JSONObject()
                     try {
                         json.put(PARAM_ACCESS_TOKEN, mAccessToken)
@@ -170,7 +173,7 @@ open class Odnoklassniki(
     fun isActivityRequestSuggest(requestCode: Int): Boolean = requestCode == OK_SUGGESTING_REQUEST_CODE
 
     fun isActivityRequestViral(request: Int): Boolean =
-            isActivityRequestPost(request) || isActivityRequestInvite(request) || isActivityRequestSuggest(request)
+        isActivityRequestPost(request) || isActivityRequestInvite(request) || isActivityRequestSuggest(request)
 
     fun onActivityResultResult(request: Int, result: Int, intent: Intent?, listener: OkListener): Boolean {
         if (isActivityRequestViral(request)) {
@@ -231,7 +234,7 @@ open class Odnoklassniki(
         if (!mode.contains(OkRequestMode.NO_PLATFORM_REPORTING)) requestParams[PARAM_PLATFORM] = APP_PLATFORM
         if (mode.contains(OkRequestMode.SDK_SESSION)) {
             requestParams["sdkToken"] = sdkToken
-                    ?: throw IllegalArgumentException("SDK token is required for method call, have not forget to call sdkInit?")
+                ?: throw IllegalArgumentException("SDK token is required for method call, have not forget to call sdkInit?")
         }
         if (mode.contains(OkRequestMode.SIGNED) && !mAccessToken.isNullOrEmpty()) {
             signParameters(requestParams)
@@ -356,16 +359,18 @@ open class Odnoklassniki(
      * @param args            widget arguments as specified in documentation
      */
     fun performPosting(activity: Activity, attachment: String, userTextEnabled: Boolean, args: HashMap<String, String>? = null) =
-            performPosting(attachment, userTextEnabled, args, activity = activity)
+        performPosting(attachment, userTextEnabled, args, activity = activity)
 
     /**
      * @see performPosting
      */
     fun performPosting(fragment: Fragment, attachment: String, userTextEnabled: Boolean, args: HashMap<String, String>? = null) =
-            performPosting(attachment, userTextEnabled, args, fragment = fragment)
+        performPosting(attachment, userTextEnabled, args, fragment = fragment)
 
-    private fun performPosting(attachment: String, userTextEnabled: Boolean, args: HashMap<String, String>? = null,
-                               activity: Activity? = null, fragment: Fragment? = null) {
+    private fun performPosting(
+        attachment: String, userTextEnabled: Boolean, args: HashMap<String, String>? = null,
+        activity: Activity? = null, fragment: Fragment? = null
+    ) {
         startRequest(activity, fragment, OK_POSTING_REQUEST_CODE, OkPostingActivity::class.java) { intent ->
             intent.putExtra(PARAM_APP_ID, appId)
             intent.putExtra(PARAM_ATTACHMENT, attachment)
@@ -383,7 +388,7 @@ open class Odnoklassniki(
      * @param args widget arguments as specified in documentation
      */
     fun performAppInvite(activity: Activity, args: HashMap<String, String>? = null) =
-            performAppSuggestInvite(OkAppInviteActivity::class.java, args, OK_INVITING_REQUEST_CODE, activity = activity)
+        performAppSuggestInvite(OkAppInviteActivity::class.java, args, OK_INVITING_REQUEST_CODE, activity = activity)
 
     /**
      * Calls application invite widget
@@ -391,7 +396,7 @@ open class Odnoklassniki(
      * @param args widget arguments as specified in documentation
      */
     fun performAppInvite(fragment: Fragment, args: HashMap<String, String>? = null) =
-            performAppSuggestInvite(OkAppInviteActivity::class.java, args, OK_INVITING_REQUEST_CODE, fragment = fragment)
+        performAppSuggestInvite(OkAppInviteActivity::class.java, args, OK_INVITING_REQUEST_CODE, fragment = fragment)
 
     /**
      * Calls application suggest widget
@@ -411,11 +416,13 @@ open class Odnoklassniki(
         performAppSuggestInvite(OkAppSuggestActivity::class.java, args, OK_SUGGESTING_REQUEST_CODE, fragment = fragment)
     }
 
-    private fun performAppSuggestInvite(clazz: Class<out AbstractWidgetActivity>,
-                                        args: HashMap<String, String>?,
-                                        code: Int,
-                                        activity: Activity? = null,
-                                        fragment: Fragment? = null) {
+    private fun performAppSuggestInvite(
+        clazz: Class<out AbstractWidgetActivity>,
+        args: HashMap<String, String>?,
+        code: Int,
+        activity: Activity? = null,
+        fragment: Fragment? = null
+    ) {
         startRequest(activity, fragment, code, clazz) { intent ->
             intent.putExtra(PARAM_APP_ID, appId)
             intent.putExtra(PARAM_ACCESS_TOKEN, mAccessToken)
@@ -442,13 +449,7 @@ open class Odnoklassniki(
         mSessionSecretKey = null
         sdkToken = null
         TokenStore.removeStoredTokens(context)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            CookieManager.getInstance().removeAllCookies(null)
-        } else {
-            CookieSyncManager.createInstance(context)
-            CookieManager.getInstance().removeAllCookie()
-        }
+        CookieManager.getInstance().removeAllCookies(null)
     }
 
     fun setTokens(ctx: Context, accessToken: String, sessionSecretKey: String, withPersistance: Boolean = false) {
@@ -504,9 +505,9 @@ open class Odnoklassniki(
     }
 
     private fun toJson(key: String, value: String?): JSONObject =
-            try {
-                JSONObject().put(key, value)
-            } catch (e: JSONException) {
-                JSONObject()
-            }
+        try {
+            JSONObject().put(key, value)
+        } catch (e: JSONException) {
+            JSONObject()
+        }
 }

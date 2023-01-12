@@ -1,14 +1,12 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion rootProject.property("android.compile.sdk.version") as int
-    buildToolsVersion rootProject.property("android.build.tools.version")
 
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 28
+        minSdkVersion 21
+        targetSdkVersion 31
         versionCode 1
         versionName '1.0'
     }
@@ -37,7 +35,6 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':odnoklassniki-android-sdk')
     // required for getting advertising id, that is used in sdk.getInstallSource method
-    implementation 'com.google.android.gms:play-services-ads:16.0.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 repositories {

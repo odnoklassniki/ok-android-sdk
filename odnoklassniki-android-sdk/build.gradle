@@ -1,20 +1,20 @@
 apply plugin: 'com.android.library'
-apply from: 'library-push.gradle'
-apply from: 'git-tag.gradle'
+//FIXME: disabled maven upload, need updated libraries
+// https://docs.gradle.org/current/userguide/publishing_maven.html
+//apply from: 'library-push.gradle'
+//apply from: 'git-tag.gradle'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation('androidx.fragment:fragment:1.1.0')
+    implementation('androidx.fragment:fragment-ktx:1.5.5')
 }
 
 android {
     compileSdkVersion rootProject.property("android.compile.sdk.version") as int
-    buildToolsVersion rootProject.property("android.build.tools.version")
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 28
+        minSdkVersion 21
+        targetSdkVersion 31
     }
     productFlavors {
     }
