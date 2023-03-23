@@ -76,6 +76,8 @@ class MainActivity : Activity() {
         }
 
         ok = Odnoklassniki(this, APP_ID, APP_KEY)
+        // use a custom style for alerts
+        ok.alertStyle = R.style.AlertDialogCustom
         ok.checkValidTokens(ContextOkListener(this,
             onSuccess = { _, _ -> showAppData() },
             onError = { _, err -> toast(getString(R.string.error) + ": $err") }
