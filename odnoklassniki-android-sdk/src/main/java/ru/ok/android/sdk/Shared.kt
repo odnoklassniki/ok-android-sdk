@@ -28,6 +28,7 @@ const val PARAM_WIDGET_RETRY_ALLOWED = "widget_retry_allowed"
 const val PARAM_PLATFORM = "platform"
 const val PARAM_LOGGED_IN_USER = "logged_in_user"
 const val PARAM_RESULT = "result"
+const val PARAM_ALERT_STYLE = "alert_style"
 
 // android-specific params
 const val PARAM_ACTIVITY_RESULT = "activity_result"

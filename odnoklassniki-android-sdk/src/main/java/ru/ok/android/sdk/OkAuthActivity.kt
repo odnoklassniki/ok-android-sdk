@@ -14,10 +14,12 @@ import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.net.http.SslError
 import android.os.Bundle
+import android.view.ContextThemeWrapper
 import android.view.KeyEvent
 import android.view.View
 import android.webkit.SslErrorHandler
 import android.webkit.WebView
+import androidx.annotation.StyleRes
 import ru.ok.android.sdk.util.OkAuthType
 import java.net.URLEncoder
 
@@ -44,6 +46,8 @@ class OkAuthActivity : Activity() {
     private var authType: OkAuthType? = null
     private var ssoAuthorizationStarted = false
     private var withServerOauth = false
+    @StyleRes
+    private var alertStyle: Int? = null
 
     private lateinit var mWebView: WebView
 
@@ -61,6 +65,7 @@ class OkAuthActivity : Activity() {
             bundle.getSerializable(PARAM_AUTH_TYPE) as OkAuthType else OkAuthType.ANY
         ssoAuthorizationStarted = bundle.getBoolean(SSO_STARTED, false)
         withServerOauth = bundle.getString(OAUTH_TYPE) == OAUTH_TYPE_SERVER
+        alertStyle = bundle.getInt(PARAM_ALERT_STYLE)
 
         if (!ssoAuthorizationStarted) auth()
     }
@@ -215,7 +220,10 @@ class OkAuthActivity : Activity() {
         if (isFinishing) return
 
         try {
-            AlertDialog.Builder(this@OkAuthActivity)
+            val builder = alertStyle
+                ?.let { AlertDialog.Builder(ContextThemeWrapper(this, it)) }
+                ?: AlertDialog.Builder(this@OkAuthActivity)
+            builder
                 .setMessage(message)
                 .setPositiveButton(getString(R.string.retry)) { _, _ -> auth() }
                 .setNegativeButton(getString(R.string.cancel)) { _, _ -> onCancel(message) }
@@ -224,7 +232,6 @@ class OkAuthActivity : Activity() {
             // this usually happens during fast back. avoid crash in such a case
             onCancel(message)
         }
-
     }
 
     private inner class OAuthWebViewClient(context: Context) : OkWebViewClient(context) {

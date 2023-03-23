@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.AsyncTask
 import android.text.TextUtils
 import android.webkit.CookieManager
+import androidx.annotation.StyleRes
 import androidx.fragment.app.Fragment
 import org.json.JSONException
 import org.json.JSONObject
@@ -29,6 +30,12 @@ open class Odnoklassniki(
 
     protected val appId: String
     protected val appKey: String
+
+    /**
+     * Custom style for inner alerts
+     */
+    @StyleRes
+    var alertStyle: Int? = null
 
     init {
         if (id == null || key == null) {
@@ -109,6 +116,7 @@ open class Odnoklassniki(
             intent.putExtra(PARAM_APP_KEY, appKey)
             intent.putExtra(PARAM_AUTH_TYPE, authType)
             intent.putExtra(PARAM_SCOPES, scopes)
+            intent.putExtra(PARAM_ALERT_STYLE, alertStyle)
             if (withServerOauth) intent.putExtra(OAUTH_TYPE, OAUTH_TYPE_SERVER)
         }
 
