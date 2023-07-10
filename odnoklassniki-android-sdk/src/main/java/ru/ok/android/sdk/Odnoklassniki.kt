@@ -244,9 +244,11 @@ open class Odnoklassniki(
             requestParams["sdkToken"] = sdkToken
                 ?: throw IllegalArgumentException("SDK token is required for method call, have not forget to call sdkInit?")
         }
-        if (mode.contains(OkRequestMode.SIGNED) && !mAccessToken.isNullOrEmpty()) {
-            signParameters(requestParams)
-            requestParams[PARAM_ACCESS_TOKEN] = mAccessToken!!
+        mAccessToken?.let { accessToken ->
+            if (mode.contains(OkRequestMode.SIGNED)) {
+                signParameters(requestParams)
+                requestParams[PARAM_ACCESS_TOKEN] = accessToken
+            }
         }
         return OkRequestUtil.executeRequest(requestParams)
     }
